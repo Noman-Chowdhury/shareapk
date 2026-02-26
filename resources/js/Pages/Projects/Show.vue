@@ -52,61 +52,61 @@ function formatDate(dateStr) {
             <!-- Project Identification & Telemetry -->
             <div class="xl:col-span-4 space-y-6">
                 <!-- Main Identity Card -->
-                <div class="premium-card p-8 text-center animate-scale-in">
-                    <div class="relative inline-block group mb-6">
+                <div class="premium-card p-6 text-center animate-scale-in">
+                    <div class="relative inline-block group mb-5">
                         <div class="absolute -inset-4 bg-indigo-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                        <div class="relative w-24 h-24 rounded-3xl bg-white border border-slate-100 shadow-xl p-3 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
+                        <div class="relative w-20 h-20 rounded-3xl bg-white border border-slate-100 shadow-xl p-3 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
                             <img v-if="project.icon_url" :src="'/storage/' + project.icon_url" class="max-w-full max-h-full object-contain" />
-                            <i v-else class="bi bi-android2 text-5xl text-indigo-400"></i>
+                            <i v-else class="bi bi-android2 text-4xl text-indigo-400"></i>
                         </div>
                     </div>
                     
-                    <h1 class="text-2xl font-black text-slate-900 mb-1 tracking-tight">{{ project.name }}</h1>
-                    <p class="text-[10px] font-mono font-black text-slate-400 uppercase tracking-widest">{{ project.package_name }}</p>
+                    <h1 class="text-xl font-black text-slate-900 mb-1 tracking-tight uppercase">{{ project.name }}</h1>
+                    <p class="text-[9px] font-mono font-black text-slate-400 uppercase tracking-widest">{{ project.package_name }}</p>
                     
-                    <div class="mt-8 grid grid-cols-2 gap-3">
-                        <div class="p-4 bg-[#f8fafc] border border-slate-100 rounded-2xl text-left matte-surface">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Stability Grade</span>
-                            <span class="text-xs font-black" :class="project.pending_feedbacks_count > 0 ? 'text-rose-600' : 'text-emerald-600'">
-                                {{ project.pending_feedbacks_count > 2 ? 'De-Syncing' : (project.pending_feedbacks_count > 0 ? 'Watching' : 'Operational') }}
+                    <div class="mt-6 grid grid-cols-2 gap-3">
+                        <div class="p-3 bg-slate-50 border border-slate-100 rounded-2xl text-left matte-surface">
+                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Stability</span>
+                            <span class="text-[10px] font-black" :class="project.pending_feedbacks_count > 0 ? 'text-rose-600' : 'text-emerald-600'">
+                                {{ project.pending_feedbacks_count > 2 ? 'De-Sync' : (project.pending_feedbacks_count > 0 ? 'Watching' : 'Operational') }}
                             </span>
                         </div>
-                        <div class="p-4 bg-[#f8fafc] border border-slate-100 rounded-2xl text-left matte-surface">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Last Handshake</span>
-                            <span class="text-xs font-black text-slate-800">{{ formatDate(project.latest_build?.created_at) }}</span>
+                        <div class="p-3 bg-slate-50 border border-slate-100 rounded-2xl text-left matte-surface">
+                            <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Handshake</span>
+                            <span class="text-[10px] font-black text-slate-800">{{ formatDate(project.latest_build?.created_at) }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Deep Telemetry -->
-                <div class="premium-card p-8 animate-slide-up" style="animation-delay: 0.2s">
-                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b border-slate-50 pb-2">System DNA</h3>
-                    <div class="space-y-6">
+                <div class="premium-card p-6 bg-slate-50/50 animate-slide-up" style="animation-delay: 0.2s">
+                    <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-5 border-b border-slate-100/50 pb-2">Functional DNA</h3>
+                    <div class="space-y-4">
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
-                                <i class="bi bi-layers-fill text-lg"></i>
+                            <div class="w-9 h-9 rounded-xl bg-white text-indigo-600 flex items-center justify-center shadow-sm border border-slate-100">
+                                <i class="bi bi-layers-fill text-base"></i>
                             </div>
                             <div>
-                                <span class="text-base font-black text-slate-800 block leading-none">{{ project.builds_count }}</span>
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Protocol Registries</span>
+                                <span class="text-sm font-black text-slate-800 block leading-none tabular-nums">{{ project.builds_count }}</span>
+                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Registries</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm">
-                                <i class="bi bi-shield-exclamation text-lg"></i>
+                            <div class="w-9 h-9 rounded-xl bg-white text-rose-600 flex items-center justify-center shadow-sm border border-slate-100">
+                                <i class="bi bi-shield-exclamation text-base"></i>
                             </div>
                             <div>
-                                <span class="text-base font-black text-rose-600 block leading-none">{{ project.pending_feedbacks_count }}</span>
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Active Disruptions</span>
+                                <span class="text-sm font-black text-rose-600 block leading-none tabular-nums">{{ project.pending_feedbacks_count }}</span>
+                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Issues</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm">
-                                <i class="bi bi-lightning-charge text-lg"></i>
+                            <div class="w-9 h-9 rounded-xl bg-white text-amber-600 flex items-center justify-center shadow-sm border border-slate-100">
+                                <i class="bi bi-lightning-charge text-base"></i>
                             </div>
                             <div>
-                                <span class="text-base font-black text-amber-600 block leading-none">{{ project.pending_tasks_count }}</span>
-                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Operational Tasks</span>
+                                <span class="text-sm font-black text-amber-600 block leading-none tabular-nums">{{ project.pending_tasks_count }}</span>
+                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tasks</span>
                             </div>
                         </div>
                     </div>
@@ -121,27 +121,27 @@ function formatDate(dateStr) {
                 </section>
 
                 <div class="premium-card overflow-hidden">
-                    <div class="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                    <div class="px-8 py-4 border-b border-white/10 flex justify-between items-center bg-slate-900 text-white">
                         <div class="flex items-center gap-3">
                             <i class="bi bi-archive text-indigo-400"></i>
-                            <h3 class="text-[10px] font-black uppercase tracking-widest">Version Repository Trace</h3>
+                            <h3 class="text-[10px] font-black uppercase tracking-[0.2em]">Version Registry Trace</h3>
                         </div>
-                        <span class="text-[9px] font-black uppercase tracking-widest opacity-60">{{ builds.total }} Entries Analyzed</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest opacity-40">{{ builds.total }} Fragments Logged</span>
                     </div>
 
-                    <div v-if="builds.data.length === 0" class="py-32 text-center text-slate-300">
-                        <i class="bi bi-cloud-slash text-5xl mb-4 block opacity-10"></i>
-                        <p class="font-black uppercase tracking-widest text-[10px]">Registry Empty. DNA data missing.</p>
+                    <div v-if="builds.data.length === 0" class="py-24 text-center text-slate-300">
+                        <i class="bi bi-cloud-slash text-4xl mb-3 block opacity-10"></i>
+                        <p class="font-black uppercase tracking-widest text-[9px]">Registry Empty</p>
                     </div>
 
                     <div v-else class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 border-b border-slate-100 text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
+                            <thead class="bg-slate-50 text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
                                 <tr>
-                                    <th class="px-8 py-5">Branch Signal</th>
-                                    <th class="px-8 py-5">Security Tier</th>
-                                    <th class="px-8 py-5">Trace Information</th>
-                                    <th class="px-8 py-5 text-right">Action</th>
+                                    <th class="px-8 py-4">Branch Signal</th>
+                                    <th class="px-8 py-4">Security Tier</th>
+                                    <th class="px-8 py-4">Execution Metrics</th>
+                                    <th class="px-8 py-4 text-right pr-12">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50 text-xs">

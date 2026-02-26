@@ -78,83 +78,102 @@ function roleColor(role) {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Access Control</h2>
-                    <p class="text-slate-500 text-sm font-medium">Manage operator permissions and cluster access levels.</p>
+                <div class="space-y-1">
+                    <h2 class="text-sm font-black text-slate-800 uppercase tracking-widest px-1 flex items-center gap-3">
+                        <i class="bi bi-shield-lock-fill text-indigo-500"></i> Identity & Access Management
+                    </h2>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Manage cluster operators and security protocols.</p>
                 </div>
-                <button @click="openModal()" class="btn-premium-primary text-sm py-2.5">
+                <button @click="openModal()" class="btn-premium-indigo text-[10px] py-2 px-5 font-black uppercase tracking-widest">
                     <i class="bi bi-person-plus-fill mr-2"></i> Enroll Operator
                 </button>
             </div>
         </template>
 
-        <div class="premium-card overflow-hidden">
-            <div class="px-8 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="premium-card p-5 bg-white border-b-4 border-indigo-500">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Total Enrolled</span>
+                <span class="text-2xl font-black text-slate-900 tabular-nums">{{ users.length }}</span>
+            </div>
+            <div class="premium-card p-5 bg-slate-50 border-b-4 border-emerald-500">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Admins</span>
+                <span class="text-2xl font-black text-slate-900 tabular-nums">{{ users.filter(u => u.roles.some(r => r.name === 'Admin')).length }}</span>
+            </div>
+            <div class="premium-card p-5 bg-slate-50 border-b-4 border-amber-500">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Managers</span>
+                <span class="text-2xl font-black text-slate-900 tabular-nums">{{ users.filter(u => u.roles.some(r => r.name === 'Manager')).length }}</span>
+            </div>
+            <div class="premium-card p-5 bg-slate-50 border-b-4 border-slate-300">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Active Sessions</span>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-2xl font-black text-slate-900 tabular-nums">{{ users.length }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="premium-card overflow-hidden bg-white shadow-xl/10">
+            <div class="px-8 py-5 border-b border-slate-100 bg-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-4">
                  <div class="relative max-w-sm w-full">
-                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input v-model="searchQuery" type="text" class="input-premium py-2 pl-11 text-xs" placeholder="Search operators..." />
+                    <i class="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-white/40"></i>
+                    <input v-model="searchQuery" type="text" class="w-full bg-white/5 border border-white/10 rounded-2xl py-2 pl-11 text-xs text-white placeholder-white/30 font-bold focus:bg-white/10 outline-none transition-all" placeholder="Search identities..." />
                  </div>
                  <div class="flex items-center gap-2">
-                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">{{ users.length }} Total Enrolled</span>
+                    <span class="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Protocol Registry</span>
                  </div>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50/30 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                         <tr>
-                            <th class="px-8 py-4">Identity</th>
-                            <th class="px-8 py-4">Permissions</th>
-                            <th class="px-8 py-4">Status</th>
-                            <th class="px-8 py-4">Enrolled On</th>
-                            <th class="px-8 py-4 text-right pr-12">Control</th>
+                            <th class="px-8 py-5">Operator Identity</th>
+                            <th class="px-8 py-5">Access Tier</th>
+                            <th class="px-8 py-5">Registry State</th>
+                            <th class="px-8 py-5">Enrollment Date</th>
+                            <th class="px-8 py-5 text-right pr-12">Control</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        <tr v-for="user in filteredUsers" :key="user.id" class="group hover:bg-slate-50/50 transition-colors">
+                    <tbody class="divide-y divide-slate-50">
+                        <tr v-for="user in filteredUsers" :key="user.id" class="group hover:bg-[#f8fafc] transition-colors">
                             <td class="px-8 py-6">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-10 h-10 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-xs font-black text-slate-700">
+                                    <div class="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-black text-slate-700 shadow-sm relative overflow-hidden group-hover:rotate-3 transition-transform">
                                         {{ user.name.charAt(0) }}
+                                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent"></div>
                                     </div>
                                     <div class="flex flex-col min-w-0">
-                                        <span class="text-sm font-black text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-2">
+                                        <span class="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors flex items-center gap-2">
                                             {{ user.name }}
-                                            <span v-if="user.id === currentUser.id" class="text-[9px] font-black uppercase bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded border border-indigo-100">Self</span>
+                                            <span v-if="user.id === currentUser.id" class="text-[8px] font-black uppercase bg-indigo-600 text-white px-2 py-0.5 rounded-lg tracking-widest">Root</span>
                                         </span>
-                                        <span class="text-[10px] font-bold text-slate-400 truncate">{{ user.email }}</span>
+                                        <span class="text-[10px] font-black text-slate-400 truncate uppercase tracking-tighter">{{ user.email }}</span>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-8 py-6">
-                                <span v-if="user.roles.length" class="badge-premium text-[9px] py-1 px-3 border-transparent" :class="roleColor(user.roles[0].name)">
-                                    {{ user.roles[0].name }}
+                                <span v-if="user.roles.length" class="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border" :class="roleColor(user.roles[0].name)">
+                                    {{ user.roles[0].name }} Tier
                                 </span>
-                                <span v-else class="text-[10px] font-black text-slate-300 uppercase">No Protocol</span>
+                                <span v-else class="text-[9px] font-black text-slate-300 uppercase tracking-widest">No Protocol Assigned</span>
                             </td>
                             <td class="px-8 py-6">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse"></span>
-                                    <span class="text-[10px] font-black uppercase text-emerald-600 tracking-tighter">Verified</span>
+                                <div class="flex items-center gap-2.5">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]"></span>
+                                    <span class="text-[10px] font-black uppercase text-slate-600 tracking-widest">Authorized</span>
                                 </div>
                             </td>
                             <td class="px-8 py-6">
-                                <span class="text-xs font-bold text-slate-500 tabular-nums">{{ new Date(user.created_at).toLocaleDateString() }}</span>
+                                <span class="text-xs font-black text-slate-500 tabular-nums">{{ new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
                             </td>
-                            <td class="px-8 py-6 text-right pr-10">
+                            <td class="px-8 py-4 text-right pr-10">
                                 <div class="flex items-center justify-end gap-2">
-                                    <button @click="openModal(user)" class="p-2 text-slate-300 hover:text-indigo-600 transition-colors tooltip" title="Edit Access"><i class="bi bi-pencil-square"></i></button>
+                                    <button @click="openModal(user)" class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all border border-transparent hover:border-indigo-100"><i class="bi bi-pencil-square"></i></button>
                                     <button v-if="currentUser.roles && currentUser.roles.some(r => r.name === 'Admin')" 
                                             @click="deleteUser(user.id)" 
                                             :disabled="user.id === currentUser.id"
-                                            class="p-2 text-slate-300 hover:text-rose-500 disabled:opacity-30 disabled:pointer-events-none transition-colors"><i class="bi bi-trash"></i></button>
+                                            class="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent hover:border-rose-100 disabled:opacity-20"><i class="bi bi-trash"></i></button>
                                 </div>
-                            </td>
-                        </tr>
-                        <tr v-if="!filteredUsers.length">
-                            <td colspan="5" class="py-20 text-center text-slate-400 opacity-40">
-                                 <i class="bi bi-search text-5xl mb-4 block"></i>
-                                 <p class="font-black uppercase tracking-[0.3em] text-xs">No matching identities identified</p>
                             </td>
                         </tr>
                     </tbody>
