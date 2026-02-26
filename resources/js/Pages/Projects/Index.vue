@@ -60,7 +60,8 @@ function buildTypeColor(type) {
                             </div>
                         </div>
 
-                        <p class="text-xs text-slate-500 line-clamp-2 mb-6 min-h-[32px]">{{ project.description || 'No project summary provided.' }}</p>
+                        <p v-if="project.description" class="text-xs text-slate-500 line-clamp-2 mb-6 min-h-[32px]">{{ project.description }}</p>
+                        <div v-else class="mb-6 min-h-[32px]"></div>
 
                         <!-- Stats Strip -->
                         <div class="mt-auto pt-4 border-t border-slate-50 grid grid-cols-2 gap-4">
