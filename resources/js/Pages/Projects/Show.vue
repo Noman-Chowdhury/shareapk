@@ -136,10 +136,10 @@ function formatDate(dateStr) {
 
                     <div v-else class="overflow-x-auto">
                         <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[9px] font-black uppercase text-slate-400 tracking-[0.2em]">
-                                <tr>
+                            <thead class="bg-slate-900 border-b border-white/10 text-white">
+                                <tr class="text-[9px] font-black uppercase tracking-[0.2em]">
                                     <th class="px-8 py-4">Branch Signal</th>
-                                    <th class="px-8 py-4">Security Tier</th>
+                                    <th class="px-8 py-4 text-center">Security Tier</th>
                                     <th class="px-8 py-4">Execution Metrics</th>
                                     <th class="px-8 py-4 text-right pr-12">Action</th>
                                 </tr>

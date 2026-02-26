@@ -99,46 +99,46 @@ const filteredTasks = computed(() => {
 
         <div class="premium-card overflow-hidden">
              <table class="w-full text-left">
-                <thead class="bg-slate-50 border-b border-slate-100">
-                    <tr>
-                        <th class="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest">ID / Task Details</th>
-                        <th class="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest">Status</th>
-                        <th class="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest">Priority</th>
-                        <th class="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest">Assignee</th>
-                        <th class="px-8 py-5 text-[11px] font-black uppercase text-slate-400 tracking-widest text-right pr-12">Action</th>
+                <thead class="bg-slate-900 border-b border-white/10 text-white">
+                    <tr class="text-[10px] font-black uppercase tracking-[0.2em]">
+                        <th class="px-8 py-4">ID / Task Details</th>
+                        <th class="px-8 py-4">Status</th>
+                        <th class="px-8 py-4 text-center">Priority</th>
+                        <th class="px-8 py-4">Assignee</th>
+                        <th class="px-8 py-4 text-right pr-12">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <tr v-for="tk in filteredTasks" :key="tk.id" class="group hover:bg-slate-50/50 transition-colors">
-                        <td class="px-8 py-6">
+                        <td class="px-8 py-3">
                             <div class="flex items-center gap-4">
-                                <span class="text-xs font-black text-slate-300 tabular-nums">#{{ tk.id }}</span>
+                                <span class="text-[10px] font-black text-slate-300 tabular-nums">#{{ tk.id }}</span>
                                 <div class="min-w-0">
-                                    <Link :href="route('tasks.show', tk.id)" class="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors block">{{ tk.title }}</Link>
-                                    <span v-if="tk.build" class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ tk.build.project?.name }} Cluster</span>
+                                    <Link :href="route('tasks.show', tk.id)" class="text-xs font-black text-slate-900 group-hover:text-indigo-600 transition-colors block truncate leading-tight">{{ tk.title }}</Link>
+                                    <span v-if="tk.build" class="text-[9px] font-black text-slate-400 uppercase tracking-tighter opacity-70">{{ tk.build.project?.name }} Cluster</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-8 py-6">
-                            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest" :class="statusColor(tk.status)">{{ tk.status }}</span>
+                        <td class="px-8 py-3">
+                            <span class="px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest" :class="statusColor(tk.status)">{{ tk.status }}</span>
                         </td>
-                        <td class="px-8 py-6">
-                            <span class="badge-premium text-[9px]" :class="priorityColor(tk.priority)">{{ tk.priority }}</span>
+                        <td class="px-8 py-3 text-center">
+                            <span class="badge-premium text-[8px] px-2 py-0.5" :class="priorityColor(tk.priority)">{{ tk.priority }}</span>
                         </td>
-                        <td class="px-8 py-6">
+                        <td class="px-8 py-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-[11px] font-black text-slate-700 shadow-sm">{{ tk.assignee?.name.charAt(0) || '?' }}</div>
+                                <div class="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-[9px] font-black text-slate-500">{{ tk.assignee?.name.charAt(0) || '?' }}</div>
                                 <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-slate-800">{{ tk.assignee?.name || 'Unassigned' }}</span>
-                                    <span v-if="tk.due_date" class="text-[9px] font-black text-rose-500 uppercase tracking-tighter">Due {{ new Date(tk.due_date).toLocaleDateString() }}</span>
+                                    <span class="text-[11px] font-black text-slate-700 leading-none">{{ tk.assignee?.name || 'Unassigned' }}</span>
+                                    <span v-if="tk.due_date" class="text-[8px] font-black text-rose-500 uppercase tracking-tighter mt-0.5">Due {{ new Date(tk.due_date).toLocaleDateString() }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-8 py-6 text-right pr-10">
-                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Link :href="route('tasks.show', tk.id)" class="p-2 text-slate-300 hover:text-indigo-600 transition-colors"><i class="bi bi-eye"></i></Link>
-                                <button @click="openModal(tk)" class="p-2 text-slate-300 hover:text-indigo-600 transition-colors"><i class="bi bi-pencil-square"></i></button>
-                                <button @click="deleteTask(tk.id)" class="p-2 text-slate-300 hover:text-rose-500 transition-colors"><i class="bi bi-trash"></i></button>
+                        <td class="px-8 py-3 text-right pr-10">
+                            <div class="flex items-center justify-end gap-2">
+                                <Link :href="route('tasks.show', tk.id)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all border border-transparent hover:border-indigo-100"><i class="bi bi-eye"></i></Link>
+                                <button @click="openModal(tk)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all border border-transparent hover:border-indigo-100"><i class="bi bi-pencil-square"></i></button>
+                                <button @click="deleteTask(tk.id)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all border border-transparent hover:border-rose-100"><i class="bi bi-trash"></i></button>
                             </div>
                         </td>
                     </tr>

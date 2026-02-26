@@ -125,13 +125,13 @@ function roleColor(role) {
 
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                        <tr>
-                            <th class="px-8 py-5">Operator Identity</th>
-                            <th class="px-8 py-5">Access Tier</th>
-                            <th class="px-8 py-5">Registry State</th>
-                            <th class="px-8 py-5">Enrollment Date</th>
-                            <th class="px-8 py-5 text-right pr-12">Control</th>
+                    <thead class="bg-slate-900 border-b border-white/10 text-white">
+                        <tr class="text-[10px] font-black uppercase tracking-[0.2em]">
+                            <th class="px-8 py-4">Operator Identity</th>
+                            <th class="px-8 py-4">Access Tier</th>
+                            <th class="px-8 py-4 text-center">Registry State</th>
+                            <th class="px-8 py-4 text-center">Enrollment Date</th>
+                            <th class="px-8 py-4 text-right pr-12">Control</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">

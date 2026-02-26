@@ -127,106 +127,116 @@ function formatDate(dateStr) {
             </div>
         </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-4">
             <!-- Left: Main Thread -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-3 space-y-6">
                 <!-- Core Issue Card -->
-                <div class="premium-card p-8 lg:p-10">
-                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3">
-                                <span class="badge-premium bg-slate-900 text-white border-transparent">{{ feedback.type }}</span>
-                                <span class="badge-premium" :class="severityColor(feedback.severity)">{{ feedback.severity || 'Medium' }} Severity</span>
+                <div class="premium-card p-0 overflow-hidden shadow-2xl shadow-slate-200/50">
+                    <div class="p-8 lg:p-10">
+                        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100">
+                            <div class="space-y-4">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-[0.2em]">{{ feedback.type }}</span>
+                                    <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border" :class="severityColor(feedback.severity)">{{ feedback.severity || 'Medium' }} Severity Signal</span>
+                                </div>
+                                <h1 class="text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase">{{ feedback.title }}</h1>
                             </div>
-                            <h1 class="text-3xl font-black text-slate-900 leading-tight tracking-tight">{{ feedback.title }}</h1>
+                            <div class="shrink-0 flex items-center gap-3 px-5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl shadow-inner">
+                                <i class="bi bi-circle-fill text-[8px]" :class="statusColor(feedback.status)"></i>
+                                <span class="text-[10px] font-black uppercase tracking-[0.2em]" :class="statusColor(feedback.status)">{{ feedback.status }} STATE</span>
+                            </div>
                         </div>
-                        <div class="shrink-0 flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-                            <i class="bi bi-circle-fill text-[8px]" :class="statusColor(feedback.status)"></i>
-                            <span class="text-[10px] font-black uppercase tracking-widest" :class="statusColor(feedback.status)">{{ feedback.status }}</span>
-                        </div>
-                    </div>
 
-                    <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed font-medium bg-slate-50/50 p-6 rounded-3xl border border-slate-100 mb-8 overflow-x-auto">
-                        {{ feedback.description }}
-                    </div>
+                        <div class="space-y-8">
+                            <div class="bg-slate-50/50 rounded-3xl p-8 border border-slate-100 prose prose-slate max-w-none text-slate-600 leading-relaxed font-medium overflow-x-auto shadow-inner relative">
+                                <div class="absolute top-4 right-6 opacity-10">
+                                    <i class="bi bi-quote text-4xl text-slate-400"></i>
+                                </div>
+                                {{ feedback.description }}
+                            </div>
 
-                    <div v-if="feedback.attachments && feedback.attachments.length" class="space-y-4">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Evidence & Attachments</h4>
-                        <div class="flex flex-wrap gap-3">
-                            <a v-for="att in feedback.attachments" :key="att.path"
-                               :href="'/storage/' + att.path" target="_blank"
-                               class="group flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl hover:border-indigo-300 hover:shadow-md transition-all">
-                                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-colors group-hover:bg-indigo-600 group-hover:text-white">
-                                    <i class="bi bi-paperclip"></i>
+                            <div v-if="feedback.attachments && feedback.attachments.length" class="space-y-4">
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 flex items-center gap-3">
+                                    <i class="bi bi-paperclip text-indigo-500"></i> Evidence & Binary Trace Registry
+                                </h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                                    <a v-for="att in feedback.attachments" :key="att.path"
+                                       :href="'/storage/' + att.path" target="_blank"
+                                       class="group flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-300 hover:shadow-xl transition-all">
+                                        <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center transition-colors group-hover:bg-indigo-600 group-hover:text-white shrink-0 shadow-sm border border-indigo-100/50">
+                                            <i class="bi bi-link-45deg text-xl"></i>
+                                        </div>
+                                        <div class="flex flex-col min-w-0">
+                                            <span class="text-xs font-black text-slate-800 truncate">{{ att.name }}</span>
+                                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ (att.size / 1024).toFixed(0) }} KB Block</span>
+                                        </div>
+                                    </a>
                                 </div>
-                                <div class="flex flex-col">
-                                    <span class="text-xs font-bold text-slate-700 truncate max-w-[150px]">{{ att.name }}</span>
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ (att.size / 1024).toFixed(0) }} KB</span>
-                                </div>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Discussion Engine -->
-                <div class="space-y-6 pt-4">
-                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-3 px-1">
-                        <i class="bi bi-chat-left-dots-fill text-indigo-500"></i> Communication Log
-                    </h3>
+                <div class="space-y-8 pt-6">
+                    <div class="flex items-center justify-between px-1">
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> Collaborative Protocol Logs
+                        </h3>
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ feedback.comments?.length || 0 }} Entries Recorded</span>
+                    </div>
                     
-                    <div class="space-y-6">
+                    <div class="space-y-8 relative before:absolute before:left-5 before:top-2 before:bottom-0 before:w-0.5 before:bg-slate-100">
                         <div v-for="comment in feedback.comments" :key="comment.id" 
-                             class="flex gap-5 animate-in fade-in"
+                             class="flex gap-6 animate-in slide-in-from-left-4 duration-500 relative"
                         >
-                            <div class="shrink-0 pt-1">
-                                <div class="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white text-[12px] font-black border-2 border-white shadow-lg">
+                            <div class="shrink-0 relative z-10">
+                                <div class="w-10 h-10 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-900 text-[11px] font-black shadow-md rotate-3 group-hover:rotate-0 transition-transform">
                                     {{ (comment.author?.name ?? 'U').charAt(0).toUpperCase() }}
                                 </div>
                             </div>
-                            <div class="flex-grow space-y-2">
+                            <div class="flex-grow space-y-3 pb-8">
                                 <div class="flex items-center justify-between px-1">
-                                    <span class="text-xs font-black text-slate-900">{{ comment.author?.name ?? 'Anonymous System User' }}</span>
-                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{ formatDate(comment.created_at) }}</span>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-black text-slate-900">{{ comment.author?.name || 'Anonymous Node' }}</span>
+                                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ formatDate(comment.created_at) }}</span>
+                                    </div>
                                 </div>
-                                <div class="premium-card p-5 bg-white shadow-sm ring-1 ring-slate-100/50">
-                                    <p class="text-sm text-slate-600 leading-relaxed font-medium">{{ comment.body }}</p>
-                                    <div v-if="comment.attachment_path" class="mt-4 pt-4 border-t border-slate-50 flex">
+                                <div class="premium-card p-6 bg-white border-slate-100 shadow-sm relative overflow-hidden group">
+                                    <p class="text-[13px] text-slate-600 leading-relaxed font-medium relative z-10">{{ comment.body }}</p>
+                                    <div v-if="comment.attachment_path" class="mt-5 pt-5 border-t border-slate-50 flex">
                                         <a :href="'/storage/' + comment.attachment_path" target="_blank" 
-                                           class="text-[10px] font-black text-indigo-600 bg-indigo-50/50 px-3 py-1.5 rounded-xl border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all">
-                                            <i class="bi bi-link-45deg mr-1"></i> {{ comment.attachment_name }}
+                                           class="inline-flex items-center gap-3 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all shadow-sm">
+                                            <i class="bi bi-clipboard-pulse text-xs"></i> View Trace Fragment: {{ comment.attachment_name }}
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div v-if="!feedback.comments?.length" class="text-center py-12 premium-card bg-slate-50/50 border-dashed">
-                             <p class="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Silence in the logs. No discussion identified.</p>
+                        <div v-if="!feedback.comments?.length" class="text-center py-16 bg-slate-50/30 rounded-[2.5rem] border-2 border-dashed border-slate-100 ml-10">
+                             <i class="bi bi-chat-left-dots text-3xl text-slate-100 block mb-4"></i>
+                             <p class="text-[10px] font-black uppercase text-slate-300 tracking-[0.3em]">Communication line silent. No resolution logs found.</p>
                         </div>
                     </div>
 
                     <!-- Post Interface -->
-                    <div class="premium-card p-8 bg-gradient-to-br from-white to-slate-50/50 relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 p-8 opacity-[0.03] group-focus-within:opacity-[0.1] transition-opacity">
-                            <i class="bi bi-send-fill text-[80px]"></i>
-                        </div>
+                    <div class="premium-card p-8 bg-gradient-to-br from-slate-900 to-slate-800 border-0 relative overflow-hidden group ml-10 shadow-2xl shadow-indigo-900/20">
+                        <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
                         
                         <form @submit.prevent="submitComment" class="space-y-6 relative z-10">
-                            <div class="relative">
-                                <textarea v-model="commentForm.body" 
-                                          class="input-premium py-4 text-sm font-medium min-h-[140px] focus:bg-white transition-colors" 
-                                          placeholder="Collaborate on a resolution or provide further status updates..." required></textarea>
-                            </div>
-                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <div class="w-full sm:w-auto">
-                                    <label class="px-4 py-2 border-2 border-dashed border-slate-200 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-white hover:border-indigo-300 transition-all text-xs font-bold text-slate-500">
-                                        <i class="bi bi-paperclip text-lg"></i>
-                                        <span>{{ commentForm.attachment ? commentForm.attachment.name : 'Include Evidence' }}</span>
-                                        <input type="file" id="comment-attachment" @change="handleCommentAttachment" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt,zip">
-                                    </label>
-                                </div>
-                                <button type="submit" class="w-full sm:w-auto btn-premium-primary py-3 px-8" :disabled="commentForm.processing">
-                                    <i class="bi bi-send-fill mr-2"></i> Commit Response
+                            <textarea v-model="commentForm.body" 
+                                      class="w-full px-6 py-5 rounded-[2rem] border-2 border-slate-800 bg-slate-800/40 text-slate-100 text-sm font-medium min-h-[140px] focus:border-indigo-500 focus:bg-slate-800/80 outline-none transition-all placeholder-slate-500" 
+                                      placeholder="Log tactical finding or broadcast resolution strategy..." required></textarea>
+                            
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+                                <label class="w-full sm:w-auto px-6 py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">
+                                    <i class="bi bi-clipboard-plus text-lg text-indigo-400"></i>
+                                    <span>{{ commentForm.attachment ? commentForm.attachment.name : 'Append Evidence' }}</span>
+                                    <input type="file" id="comment-attachment" @change="handleCommentAttachment" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt,zip">
+                                </label>
+                                <button type="submit" class="w-full sm:w-auto px-12 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-900/60 hover:bg-indigo-500 active:scale-95 transition-all" :disabled="commentForm.processing">
+                                    Commit Log Entry
                                 </button>
                             </div>
                         </form>
@@ -237,60 +247,75 @@ function formatDate(dateStr) {
             <!-- Right: Cluster Metadata -->
             <div class="space-y-6">
                 <div class="sticky top-24 space-y-6">
-                    <div class="premium-card overflow-hidden">
-                        <div class="bg-slate-900 p-5 flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center p-1.5 backdrop-blur-md">
+                    <div class="premium-card p-0 shadow-2xl shadow-slate-200/50">
+                        <div class="bg-slate-900 p-8 flex flex-col items-center text-center relative overflow-hidden">
+                            <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
+                            <div class="relative w-16 h-16 rounded-[1.8rem] bg-white shadow-xl flex items-center justify-center mb-5 rotate-3 p-3">
                                 <img v-if="feedback.build?.project?.icon_url" :src="'/storage/' + feedback.build.project.icon_url" class="w-full h-full object-contain" />
-                                <i v-else class="bi bi-terminal text-white"></i>
+                                <i v-else class="bi bi-terminal text-slate-400 text-2xl"></i>
                             </div>
                             <div class="min-w-0">
-                                <p class="text-xs font-black text-white/50 uppercase tracking-widest truncate">{{ feedback.build?.project?.name || 'Isolated Cluster' }}</p>
-                                <p class="text-[11px] font-bold text-indigo-400 font-mono">Build v{{ feedback.build?.version_name }} ({{ feedback.build?.version_code }})</p>
+                                <p class="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-1 truncate px-4">{{ feedback.build?.project?.name || 'Isolated Node' }}</p>
+                                <p class="text-xs font-black text-indigo-400 font-mono">v{{ feedback.build?.version_name }} [{{ feedback.build?.version_code }}]</p>
                             </div>
                         </div>
                         
-                        <div class="p-6 space-y-5">
-                            <div class="flex justify-between items-center group">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-slate-600 transition-colors">Report Originator</span>
-                                <span class="text-sm font-black text-slate-800">{{ feedback.author?.name || 'External Tracer' }}</span>
-                            </div>
-                            <div class="flex justify-between items-center group">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-slate-600 transition-colors">Current Handler</span>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center text-[9px] font-black text-white ring-2 ring-indigo-50">{{ feedback.assignee?.name.charAt(0) || '?' }}</div>
-                                    <span class="text-sm font-black text-indigo-600">{{ feedback.assignee?.name || 'Unassigned Node' }}</span>
+                        <div class="p-8 space-y-8">
+                            <div class="space-y-3">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] block px-1">Signal Originator</span>
+                                <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-[12px] font-black text-slate-900 shadow-sm">{{ feedback.author?.name.charAt(0) || 'E' }}</div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-xs font-black text-slate-800 truncate uppercase tracking-tight">{{ feedback.author?.name || 'External Tracer' }}</span>
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Deployment Reporter</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div v-if="feedback.device_model" class="flex justify-between items-center group">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-slate-600 transition-colors">Execution Env</span>
-                                <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">{{ feedback.device_model }}</span>
+
+                            <div class="space-y-3">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] block px-1">Active Handler</span>
+                                <div class="flex items-center gap-4 p-4 bg-white border-2 border-indigo-50 rounded-2xl shadow-sm">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-[12px] font-black text-white shadow-lg ring-4 ring-white rotate-3">{{ feedback.assignee?.name.charAt(0) || '?' }}</div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-xs font-black text-indigo-600 truncate uppercase tracking-tight">{{ feedback.assignee?.name || 'Unassigned Node' }}</span>
+                                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Primary Resolver</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div v-if="feedback.os_version" class="flex justify-between items-center group">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-slate-600 transition-colors">OS Signature</span>
-                                <span class="text-xs font-bold text-slate-700 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">{{ feedback.os_version }}</span>
-                            </div>
-                            <div class="pt-4 border-t border-slate-50 flex justify-between items-center">
-                                <span class="text-[10px] font-black uppercase text-slate-300 tracking-widest">Logged At</span>
-                                <span class="text-[11px] font-bold text-slate-500">{{ formatDate(feedback.created_at) }}</span>
+
+                            <div class="space-y-4 px-1">
+                                <div v-if="feedback.device_model" class="flex items-center justify-between text-[10px] font-black uppercase tracking-tight">
+                                    <span class="text-slate-400">Execution Env</span>
+                                    <span class="px-2.5 py-1 bg-slate-50 text-slate-700 rounded-lg border border-slate-100">{{ feedback.device_model }}</span>
+                                </div>
+                                <div v-if="feedback.os_version" class="flex items-center justify-between text-[10px] font-black uppercase tracking-tight pt-3 border-t border-slate-50">
+                                    <span class="text-slate-400">OS Signature</span>
+                                    <span class="px-2.5 py-1 bg-slate-50 text-slate-700 rounded-lg border border-slate-100">{{ feedback.os_version }}</span>
+                                </div>
+                                <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-tight pt-3 border-t border-slate-50">
+                                    <span class="text-slate-400">Registry Stamp</span>
+                                    <span class="text-slate-500">{{ formatDate(feedback.created_at) }}</span>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Quick Context Link -->
-                        <div class="p-4 bg-indigo-50/50 border-t border-indigo-100/30">
+                        <div class="p-8 bg-slate-50 border-t border-slate-100 text-center">
                             <Link v-if="feedback.build" :href="route('builds.show', feedback.build.id)" 
-                                  class="flex items-center justify-center gap-2 py-3 bg-white text-indigo-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all">
-                                <i class="bi bi-box-arrow-up-right"></i> Navigate to Binary
+                                  class="flex items-center justify-center gap-3 py-4 bg-white text-indigo-600 text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl border border-indigo-100 shadow-sm hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all">
+                                <i class="bi bi-cpu"></i> Inspect Deployment
                             </Link>
                         </div>
                     </div>
 
                     <!-- Performance Alert if Critical -->
-                    <div v-if="feedback.severity === 'Critical'" class="premium-card p-6 bg-rose-600 text-white relative overflow-hidden group">
-                        <i class="bi bi-lightning-fill absolute -bottom-4 -right-2 text-[80px] opacity-10 group-hover:scale-125 transition-transform"></i>
-                        <h4 class="text-xs font-black uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
-                             Blocking Error <span class="animate-ping h-2 w-2 rounded-full bg-rose-200"></span>
+                    <div v-if="feedback.severity === 'Critical'" class="premium-card p-8 bg-rose-600 text-white relative overflow-hidden group shadow-2xl shadow-rose-900/30">
+                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-[60px] pointer-events-none"></div>
+                        <i class="bi bi-lightning-charge-fill absolute bottom-2 right-2 text-7xl opacity-10 group-hover:scale-125 transition-transform duration-700"></i>
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.3em] mb-3 flex items-center gap-3">
+                             Operational Lock <span class="animate-ping h-2.5 w-2.5 rounded-full bg-rose-200"></span>
                         </h4>
-                        <p class="text-sm font-bold opacity-90 leading-relaxed">This record is flagged Critical. Escalated handling is required to prevent cluster disruption.</p>
+                        <p class="text-xs font-black uppercase tracking-tight opacity-90 leading-relaxed italic">Blocking Error Identified. Tier-1 escalation recommended to prevent cluster de-sync.</p>
                     </div>
                 </div>
             </div>

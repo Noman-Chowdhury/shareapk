@@ -105,46 +105,46 @@ const filteredFeedbacks = computed(() => {
 
         <div class="premium-card overflow-hidden animate-slide-up">
              <table class="w-full text-left">
-                <thead class="bg-slate-50 border-b border-slate-100">
-                    <tr class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
+                <thead class="bg-slate-900 border-b border-white/10 text-white">
+                    <tr class="text-[10px] font-black uppercase tracking-[0.2em]">
                         <th class="px-8 py-4">Signal Identification</th>
                         <th class="px-8 py-4 text-center">Protocol Status</th>
-                        <th class="px-8 py-4">Severity Tier</th>
+                        <th class="px-8 py-4 text-center">Severity</th>
                         <th class="px-8 py-4">Assigned Agent</th>
-                        <th class="px-8 py-4 text-right">Context</th>
+                        <th class="px-8 py-4 text-right pr-12">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 text-xs">
                     <tr v-for="fb in filteredFeedbacks" :key="fb.id" class="group hover:bg-[#f8fafc] transition-colors">
-                        <td class="px-8 py-5">
+                        <td class="px-8 py-2.5">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1.5 shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                                <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1 shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                                     <img v-if="fb.build?.project?.icon_url" :src="'/storage/' + fb.build.project.icon_url" class="max-w-full max-h-full object-contain" />
                                     <i v-else class="bi bi-bug text-slate-300 text-lg"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <Link :href="route('feedback.show', fb.id)" class="text-sm font-bold text-slate-800 group-hover:text-indigo-600 truncate block transition-colors leading-snug">{{ fb.title }}</Link>
-                                    <span v-if="fb.build" class="text-[10px] text-slate-400 font-black uppercase tracking-tighter opacity-70">{{ fb.build.project?.name }} v{{ fb.build.version_name }}</span>
+                                    <Link :href="route('feedback.show', fb.id)" class="text-[13px] font-black text-slate-800 group-hover:text-indigo-600 truncate block transition-colors leading-tight">{{ fb.title }}</Link>
+                                    <span v-if="fb.build" class="text-[9px] text-slate-400 font-black uppercase tracking-tighter opacity-70">{{ fb.build.project?.name }} v{{ fb.build.version_name }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-8 py-5 text-center">
-                            <span class="text-[10px] font-black uppercase tracking-widest" :class="statusColor(fb.status)">{{ fb.status }}</span>
+                        <td class="px-8 py-2.5 text-center">
+                            <span class="text-[9px] font-black uppercase tracking-widest" :class="statusColor(fb.status)">{{ fb.status }}</span>
                         </td>
-                        <td class="px-8 py-5">
-                            <span class="badge-premium" :class="severityColor(fb.severity)">{{ fb.severity }}</span>
+                        <td class="px-8 py-2.5">
+                            <span class="badge-premium text-[8px] px-2 py-0.5" :class="severityColor(fb.severity)">{{ fb.severity }}</span>
                         </td>
-                        <td class="px-8 py-5">
+                        <td class="px-8 py-2.5">
                             <div class="flex items-center gap-3">
-                                <div class="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] text-slate-500 font-bold border border-slate-200">{{ fb.assignee?.name.charAt(0) || '?' }}</div>
-                                <span class="font-bold text-slate-600">{{ fb.assignee?.name || 'Pool Sync' }}</span>
+                                <div class="w-6 h-6 bg-slate-50 rounded-lg flex items-center justify-center text-[9px] text-slate-500 font-black border border-slate-200">{{ fb.assignee?.name.charAt(0) || '?' }}</div>
+                                <span class="text-[11px] font-black text-slate-600">{{ fb.assignee?.name || 'Pool Sync' }}</span>
                             </div>
                         </td>
-                        <td class="px-8 py-5 text-right">
-                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0 translate-x-4">
-                                <Link :href="route('feedback.show', fb.id)" class="btn-premium-matte py-1.5 px-3 text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600">Inspect</Link>
-                                <button @click="openModal(fb)" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><i class="bi bi-pencil-square"></i></button>
-                                <button @click="deleteFeedback(fb.id)" class="p-2 text-slate-400 hover:text-rose-500 transition-colors"><i class="bi bi-trash"></i></button>
+                        <td class="px-8 py-2.5 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <Link :href="route('feedback.show', fb.id)" class="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg hover:bg-indigo-600 hover:text-white transition-all">Inspect</Link>
+                                <button @click="openModal(fb)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-white rounded-lg transition-all"><i class="bi bi-pencil-square"></i></button>
+                                <button @click="deleteFeedback(fb.id)" class="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-white rounded-lg transition-all"><i class="bi bi-trash"></i></button>
                             </div>
                         </td>
                     </tr>

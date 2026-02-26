@@ -124,110 +124,122 @@ function formatDate(dateStr) {
             </div>
         </template>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 pt-4">
             <!-- Left: Main Task Details -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-3 space-y-6">
                 <!-- Task Core Card -->
-                <div class="premium-card p-8 lg:p-10">
-                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
-                        <div class="space-y-3 min-w-0">
-                            <div class="flex items-center gap-3">
-                                <span class="badge-premium" :class="priorityColor(task.priority)">{{ task.priority }} Priority</span>
-                                <span v-if="task.due_date" class="badge-premium bg-rose-50 text-rose-600 border-rose-100">
-                                    <i class="bi bi-calendar-event mr-1.5"></i> Deadline: {{ (new Date(task.due_date)).toLocaleDateString() }}
-                                </span>
+                <div class="premium-card p-0 overflow-hidden">
+                    <div class="p-8 lg:p-10">
+                        <div class="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8 pb-8 border-b border-slate-100">
+                            <div class="space-y-4 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest" :class="priorityColor(task.priority)">{{ task.priority }} Priority</span>
+                                    <span v-if="task.due_date" class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest bg-rose-50 text-rose-600 border border-rose-100">
+                                        Execution Deadline: {{ (new Date(task.due_date)).toLocaleDateString() }}
+                                    </span>
+                                </div>
+                                <h1 class="text-3xl font-black text-slate-900 leading-tight tracking-tight uppercase">
+                                    {{ task.title }}
+                                </h1>
                             </div>
-                            <h1 class="text-3xl font-black text-slate-900 leading-tight tracking-tight">
-                                {{ task.title }}
-                            </h1>
+                            <div class="shrink-0 flex items-center gap-3 px-5 py-2.5 bg-slate-900 rounded-2xl shadow-xl shadow-slate-200">
+                                <span class="animate-pulse w-2 h-2 rounded-full bg-indigo-400"></span>
+                                <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white">{{ task.status }}</span>
+                            </div>
                         </div>
-                        <div class="shrink-0 flex items-center gap-2 px-4 py-2 bg-slate-900 rounded-2xl border border-slate-700 shadow-lg">
-                            <span class="animate-pulse w-2 h-2 rounded-full bg-indigo-400"></span>
-                            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-100">{{ task.status }}</span>
-                        </div>
-                    </div>
 
-                    <div class="bg-slate-50 rounded-3xl p-8 border border-slate-100 mb-8">
-                         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Functional Requirements & Notes</h4>
-                         <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed font-medium">
-                            {{ task.description || 'No detailed instructions provided for this action item.' }}
-                         </div>
-                    </div>
+                        <div class="space-y-8">
+                            <div>
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                    <i class="bi bi-text-left text-indigo-500"></i> Operation Briefing
+                                </h4>
+                                <div class="bg-slate-50/50 rounded-3xl p-8 border border-slate-100 prose prose-slate max-w-none text-slate-600 leading-relaxed font-medium">
+                                    {{ task.description || 'No detailed instructions provided for this action item.' }}
+                                </div>
+                            </div>
 
-                    <div v-if="task.attachments && task.attachments.length" class="space-y-4">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Attached Documentation</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <a v-for="att in task.attachments" :key="att.path"
-                               :href="'/storage/' + att.path" target="_blank"
-                               class="group flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-[1.5rem] hover:border-indigo-300 hover:shadow-xl transition-all">
-                                <div class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center transition-colors group-hover:bg-indigo-600 group-hover:text-white">
-                                    <i class="bi bi-file-earmark-text text-xl"></i>
+                            <div v-if="task.attachments && task.attachments.length" class="space-y-4">
+                                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1 flex items-center gap-2">
+                                    <i class="bi bi-paperclip text-indigo-500"></i> Supplementary Assets
+                                </h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                                    <a v-for="att in task.attachments" :key="att.path"
+                                       :href="'/storage/' + att.path" target="_blank"
+                                       class="group flex items-center gap-4 p-4 bg-white border border-slate-100 rounded-2xl hover:border-indigo-300 hover:shadow-xl transition-all">
+                                        <div class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center transition-colors group-hover:bg-indigo-600 group-hover:text-white shrink-0">
+                                            <i class="bi bi-file-earmark-binary text-xl"></i>
+                                        </div>
+                                        <div class="flex flex-col min-w-0">
+                                            <span class="text-xs font-black text-slate-800 truncate">{{ att.name }}</span>
+                                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ (att.size / 1024).toFixed(0) }} KB Registry</span>
+                                        </div>
+                                    </a>
                                 </div>
-                                <div class="flex flex-col min-w-0">
-                                    <span class="text-xs font-black text-slate-800 truncate">{{ att.name }}</span>
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">{{ (att.size / 1024).toFixed(0) }} KB</span>
-                                </div>
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Discussion & Progress Feed -->
-                <div class="space-y-6 pt-4">
-                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-3 px-1">
-                        <i class="bi bi-activity text-indigo-500"></i> Execution Feed
-                    </h3>
+                <div class="space-y-8 pt-6">
+                    <div class="flex items-center justify-between px-1">
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-[0.3em] flex items-center gap-3">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Execution Metrics & Logs
+                        </h3>
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ task.comments?.length || 0 }} Signals Identified</span>
+                    </div>
                     
-                    <div class="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-0 before:w-px before:bg-slate-200">
+                    <div class="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-0 before:w-0.5 before:bg-slate-100">
                         <div v-for="comment in task.comments" :key="comment.id" 
-                             class="flex gap-6 animate-in fade-in relative"
+                             class="flex gap-6 animate-in slide-in-from-left-4 duration-500 relative"
                         >
                             <div class="shrink-0 relative z-10">
-                                <div class="w-10 h-10 rounded-2xl bg-white border-4 border-slate-50 flex items-center justify-center text-slate-900 text-[11px] font-black shadow-md">
+                                <div class="w-10 h-10 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-900 text-[11px] font-black shadow-sm group-hover:rotate-6 transition-transform">
                                     {{ (comment.author?.name ?? 'U').charAt(0).toUpperCase() }}
                                 </div>
                             </div>
-                            <div class="flex-grow space-y-2 pb-6">
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs font-black text-slate-800">{{ comment.author?.name || 'Automated Cluster Agent' }}</span>
-                                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-tighter">{{ formatDate(comment.created_at) }}</span>
+                            <div class="flex-grow space-y-2 pb-8">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-black text-slate-900">{{ comment.author?.name || 'Automated Agent' }}</span>
+                                        <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">{{ formatDate(comment.created_at) }}</span>
+                                    </div>
                                 </div>
-                                <div class="premium-card p-5 bg-white">
-                                    <p class="text-sm text-slate-600 leading-relaxed font-medium">{{ comment.body }}</p>
+                                <div class="premium-card p-6 bg-white border-slate-100 shadow-sm relative overflow-hidden group">
+                                    <p class="text-[13px] text-slate-600 leading-relaxed font-medium relative z-10">{{ comment.body }}</p>
                                     <div v-if="comment.attachment_path" class="mt-4 flex">
                                         <a :href="'/storage/' + comment.attachment_path" target="_blank" 
-                                           class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-100 text-[10px] font-black text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all">
-                                            <i class="bi bi-paperclip"></i> {{ comment.attachment_name }}
+                                           class="flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
+                                            <i class="bi bi-paperclip"></i> View Fragment: {{ comment.attachment_name }}
                                         </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div v-if="!task.comments?.length" class="text-center py-12 premium-card bg-slate-50/30 border-dashed ml-10">
-                             <p class="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Deployment feed is idle.</p>
+                        <div v-if="!task.comments?.length" class="text-center py-16 bg-slate-50/50 rounded-[2.5rem] border-2 border-dashed border-slate-100 ml-10">
+                             <i class="bi bi-activity text-3xl text-slate-200 block mb-4"></i>
+                             <p class="text-[10px] font-black uppercase text-slate-300 tracking-[0.3em]">Communication line idle. Awaiting tactical data.</p>
                         </div>
                     </div>
 
                     <!-- Input Interface -->
-                    <div class="premium-card p-8 bg-slate-900 border-slate-800 relative overflow-hidden group ml-10">
-                        <div class="absolute -bottom-6 -right-6 p-8 opacity-10 group-focus-within:opacity-20 transition-opacity">
-                            <i class="bi bi-journal-text text-[100px] text-indigo-400"></i>
-                        </div>
+                    <div class="premium-card p-8 bg-slate-900 border-0 relative overflow-hidden group ml-10 shadow-2xl shadow-indigo-900/20">
+                        <div class="absolute -top-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
                         
                         <form @submit.prevent="submitComment" class="space-y-6 relative z-10">
                             <textarea v-model="commentForm.body" 
-                                      class="w-full px-5 py-4 rounded-2xl border-2 border-slate-800 bg-slate-800/50 text-indigo-50 text-sm font-medium min-h-[120px] focus:border-indigo-500 focus:bg-slate-800 outline-none transition-all" 
-                                      placeholder="Log an update or share findings..." required></textarea>
+                                      class="w-full px-6 py-5 rounded-[2rem] border-2 border-slate-800 bg-slate-800/40 text-slate-100 text-sm font-medium min-h-[140px] focus:border-indigo-500 focus:bg-slate-800/80 outline-none transition-all placeholder-slate-500" 
+                                      placeholder="Log tactical update or broadcast resolution path..." required></textarea>
                             
-                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                <label class="px-4 py-2 border border-slate-700 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-slate-800 transition-all text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <i class="bi bi-cloud-arrow-up text-lg"></i>
-                                    <span>{{ commentForm.attachment ? commentForm.attachment.name : 'Upload Report' }}</span>
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-6">
+                                <label class="w-full sm:w-auto px-6 py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-white/20 transition-all text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">
+                                    <i class="bi bi-cloud-arrow-up text-lg text-indigo-400"></i>
+                                    <span>{{ commentForm.attachment ? commentForm.attachment.name : 'Ingest Fragment' }}</span>
                                     <input type="file" id="comment-attachment" @change="handleCommentAttachment" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt,zip">
                                 </label>
-                                <button type="submit" class="w-full sm:w-auto px-10 py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-xl shadow-indigo-900/40 hover:bg-indigo-500 active:scale-95 transition-all" :disabled="commentForm.processing">
-                                    Publish Update
+                                <button type="submit" class="w-full sm:w-auto px-12 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-900/60 hover:bg-indigo-500 active:scale-95 transition-all" :disabled="commentForm.processing">
+                                    Commit Log Entry
                                 </button>
                             </div>
                         </form>
@@ -238,51 +250,61 @@ function formatDate(dateStr) {
             <!-- Right: Object Information -->
             <div class="space-y-6">
                 <div class="sticky top-24 space-y-6">
-                    <div class="premium-card overflow-hidden">
-                        <div class="bg-indigo-600 p-6 flex flex-col items-center text-center">
-                            <div class="w-16 h-16 rounded-[1.5rem] bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center mb-4">
-                                <i class="bi bi-check2-circle text-3xl text-white"></i>
+                    <div class="premium-card p-0 shadow-2xl shadow-slate-200/50">
+                        <div class="bg-indigo-600 p-8 flex flex-col items-center text-center relative overflow-hidden">
+                            <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                            <div class="relative w-16 h-16 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-4 rotate-3 group-hover:rotate-0 transition-transform">
+                                <i class="bi bi-shield-check text-3xl text-indigo-600"></i>
                             </div>
-                            <h4 class="text-white font-black uppercase tracking-widest text-xs">Lifecycle Metadata</h4>
+                            <h4 class="text-white font-black uppercase tracking-[0.2em] text-[10px] relative z-10">Action Registry Meta</h4>
                         </div>
                         
-                        <div class="p-8 space-y-6">
-                            <div class="space-y-1">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Project Branch</span>
-                                <Link v-if="task.build" :href="route('builds.show', task.build.id)" class="text-sm font-black text-slate-900 hover:text-indigo-600 transition-colors block">
-                                    {{ task.build?.project?.name || 'Isolated Root' }} v{{ task.build?.version_name }}
+                        <div class="p-8 space-y-8">
+                            <div class="space-y-3">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] block px-1">Tactical Origin</span>
+                                <Link v-if="task.build" :href="route('projects.show', task.build.project_id)" class="group block p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-all">
+                                    <span class="text-xs font-black text-slate-900 group-hover:text-indigo-600 block uppercase tracking-tight">{{ task.build?.project?.name || 'Isolated Root' }}</span>
+                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter block mt-1">Binary Hash: v{{ task.build?.version_name }}</span>
                                 </Link>
-                                <span v-else class="text-sm font-bold text-slate-400">Universal Context</span>
+                                <div v-else class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase italic tracking-widest">Global Protocol Scope</span>
+                                </div>
                             </div>
 
-                            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] font-black uppercase text-slate-400 tracking-tighter">Current Assignee</span>
-                                    <span class="text-xs font-black text-slate-800">{{ task.assignee?.name || 'System Unbound' }}</span>
+                            <div class="space-y-3">
+                                <span class="text-[9px] font-black uppercase text-slate-400 tracking-[0.2em] block px-1">Assigned Unit</span>
+                                <div class="flex items-center gap-4 p-4 bg-white border-2 border-slate-50 rounded-2xl shadow-sm">
+                                    <div class="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-[12px] font-black text-white shadow-lg rotate-3">{{ task.assignee?.name.charAt(0) || '?' }}</div>
+                                    <div class="flex flex-col min-w-0">
+                                        <span class="text-xs font-black text-slate-800 truncate uppercase tracking-tight">{{ task.assignee?.name || 'System Unbound' }}</span>
+                                        <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-0.5">Primary Handler</span>
+                                    </div>
                                 </div>
-                                <div class="w-8 h-8 rounded-full bg-slate-900 border-2 border-white flex items-center justify-center text-[10px] font-black text-white shadow-sm">{{ task.assignee?.name.charAt(0) || '?' }}</div>
                             </div>
 
-                            <div class="space-y-4 pt-2">
-                                <div class="flex items-center justify-between text-[11px] font-bold">
-                                    <span class="text-slate-400 uppercase tracking-tighter">Initiated By</span>
-                                    <span class="text-slate-700">{{ task.creator?.name || 'Automated Routine' }}</span>
+                            <div class="space-y-4 px-1">
+                                <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-tight">
+                                    <span class="text-slate-400">Dispatcher</span>
+                                    <span class="text-slate-700">{{ task.creator?.name || 'System Orchestrator' }}</span>
                                 </div>
-                                <div class="flex items-center justify-between text-[11px] font-bold">
-                                    <span class="text-slate-400 uppercase tracking-tighter">Creation Stamp</span>
+                                <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-tight pt-3 border-t border-slate-50">
+                                    <span class="text-slate-400">Timestamp</span>
                                     <span class="text-slate-700">{{ formatDate(task.created_at) }}</span>
                                 </div>
-                                <div v-if="task.due_date" class="flex items-center justify-between text-[11px] font-bold">
-                                    <span class="text-rose-400 uppercase tracking-tighter">Hard Deadline</span>
+                                <div v-if="task.due_date" class="flex items-center justify-between text-[10px] font-black uppercase tracking-tight pt-3 border-t border-slate-50">
+                                    <span class="text-rose-500">Deadline Signal</span>
                                     <span class="px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg border border-rose-100">{{ (new Date(task.due_date)).toLocaleDateString() }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="p-6 bg-slate-50 border-t border-slate-100">
-                             <div class="p-4 bg-white rounded-2xl border border-slate-200 text-center">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Action Priority</p>
-                                <p class="text-sm font-black" :class="task.priority === 'Urgent' ? 'text-rose-600' : 'text-slate-800'">{{ task.priority }} Node</p>
+                        <div class="p-8 bg-slate-50 border-t border-slate-100">
+                             <div class="p-5 bg-white rounded-3xl border border-slate-200 text-center shadow-inner">
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1.5">Operational Tier</p>
+                                <div class="flex items-center justify-center gap-2">
+                                    <span class="w-2 h-2 rounded-full" :class="task.priority === 'Urgent' ? 'bg-rose-500 animate-ping' : 'bg-slate-400'"></span>
+                                    <p class="text-[13px] font-black uppercase tracking-widest" :class="task.priority === 'Urgent' ? 'text-rose-600' : 'text-slate-800'">{{ task.priority }} NODE</p>
+                                </div>
                              </div>
                         </div>
                     </div>
