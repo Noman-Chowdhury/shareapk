@@ -145,9 +145,10 @@ const filteredTasks = computed(() => {
                                             <img v-if="task.build?.project?.icon_url" :src="'/storage/' + task.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
                                             <i v-else class="bi bi-box text-muted" style="font-size: 10px;"></i>
                                         </div>
-                                        <Link :href="route('builds.show', task.build?.id)" class="text-decoration-none small">
+                                        <Link v-if="task.build?.id" :href="route('builds.show', task.build.id)" class="text-decoration-none small">
                                             {{ task.build?.project?.name || 'Unknown Project' }} v{{ task.build?.version_name }}
                                         </Link>
+                                        <span v-else class="text-muted small">Unknown Project</span>
                                     </div>
                                 </td>
                                 <td><span class="badge" :class="taskStatusBadge(task.status)">{{ task.status }}</span></td>

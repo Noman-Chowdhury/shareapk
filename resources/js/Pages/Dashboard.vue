@@ -147,27 +147,31 @@ defineProps({
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush" v-if="myTasks && myTasks.length > 0">
-                            <Link v-for="task in myTasks" :key="task.id" :href="route('builds.show', task.build_id)" class="list-group-item list-group-item-action py-3">
-                                <div class="d-flex gap-3 align-items-center">
-                                    <div class="bg-light rounded p-2 flex-shrink-0" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                                        <img v-if="task.build?.project?.icon_url" :src="'/storage/' + task.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
-                                        <i v-else class="bi bi-check2-circle text-primary h4 mb-0"></i>
+                            <template v-for="task in myTasks" :key="task.id">
+                                <Link v-if="task.build_id"
+                                      :href="route('builds.show', task.build_id)" 
+                                      class="list-group-item list-group-item-action py-3">
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <div class="bg-light rounded p-2 flex-shrink-0" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                            <img v-if="task.build?.project?.icon_url" :src="'/storage/' + task.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                                            <i v-else class="bi bi-check2-circle text-primary h4 mb-0"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="mb-0 fw-semibold">{{ task.title }}</h6>
+                                                <small class="text-danger" v-if="task.due_date">Due: {{ (new Date(task.due_date)).toLocaleDateString() }}</small>
+                                            </div>
+                                            <div class="mb-2 text-muted small">
+                                                {{ task.build?.project?.name || 'Unknown Project' }} • v{{ task.build?.version_name }}
+                                            </div>
+                                            <div>
+                                                <span class="badge me-1" :class="task.status === 'Todo' ? 'bg-secondary' : 'bg-primary'">{{ task.status }}</span>
+                                                <span class="badge" :class="{'bg-danger': task.priority === 'Urgent', 'bg-warning text-dark': task.priority === 'High', 'bg-info text-dark': task.priority === 'Medium', 'bg-light text-dark': task.priority === 'Low'}">{{ task.priority }}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <h6 class="mb-0 fw-semibold">{{ task.title }}</h6>
-                                            <small class="text-danger" v-if="task.due_date">Due: {{ (new Date(task.due_date)).toLocaleDateString() }}</small>
-                                        </div>
-                                        <div class="mb-2 text-muted small">
-                                            {{ task.build?.project?.name || 'Unknown Project' }} • v{{ task.build?.version_name }}
-                                        </div>
-                                        <div>
-                                            <span class="badge me-1" :class="task.status === 'Todo' ? 'bg-secondary' : 'bg-primary'">{{ task.status }}</span>
-                                            <span class="badge" :class="{'bg-danger': task.priority === 'Urgent', 'bg-warning text-dark': task.priority === 'High', 'bg-info text-dark': task.priority === 'Medium', 'bg-light text-dark': task.priority === 'Low'}">{{ task.priority }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
+                                </Link>
+                            </template>
                         </div>
                         <div class="p-4 text-center" v-else>
                             <p class="text-muted mb-0">No pending tasks assigned to you. 🎉</p>
@@ -183,27 +187,31 @@ defineProps({
                     </div>
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush" v-if="myFeedback && myFeedback.length > 0">
-                            <Link v-for="fb in myFeedback" :key="fb.id" :href="route('builds.show', fb.build_id)" class="list-group-item list-group-item-action py-3">
-                                <div class="d-flex gap-3 align-items-center">
-                                    <div class="bg-light rounded p-2 flex-shrink-0" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                                        <img v-if="fb.build?.project?.icon_url" :src="'/storage/' + fb.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
-                                        <i v-else class="bi bi-bug text-danger h4 mb-0"></i>
+                            <template v-for="fb in myFeedback" :key="fb.id">
+                                <Link v-if="fb.build_id"
+                                      :href="route('builds.show', fb.build_id)" 
+                                      class="list-group-item list-group-item-action py-3">
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <div class="bg-light rounded p-2 flex-shrink-0" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                            <img v-if="fb.build?.project?.icon_url" :src="'/storage/' + fb.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                                            <i v-else class="bi bi-bug text-danger h4 mb-0"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <h6 class="mb-0 fw-semibold">{{ fb.title }}</h6>
+                                                <span class="badge" :class="{'bg-danger': fb.status === 'Open', 'bg-warning text-dark': fb.status === 'In Progress'}">{{ fb.status }}</span>
+                                            </div>
+                                            <div class="mb-2 text-muted small">
+                                                {{ fb.build?.project?.name || 'Unknown Project' }} • v{{ fb.build?.version_name }}
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-secondary me-1">{{ fb.type }}</span>
+                                                <span class="badge" v-if="fb.severity" :class="{'bg-danger': fb.severity === 'Critical', 'bg-warning text-dark': fb.severity === 'High', 'bg-info text-dark': fb.severity === 'Medium', 'bg-light text-dark': fb.severity === 'Low'}">{{ fb.severity }}</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <h6 class="mb-0 fw-semibold">{{ fb.title }}</h6>
-                                            <span class="badge" :class="{'bg-danger': fb.status === 'Open', 'bg-warning text-dark': fb.status === 'In Progress'}">{{ fb.status }}</span>
-                                        </div>
-                                        <div class="mb-2 text-muted small">
-                                            {{ fb.build?.project?.name || 'Unknown Project' }} • v{{ fb.build?.version_name }}
-                                        </div>
-                                        <div>
-                                            <span class="badge bg-secondary me-1">{{ fb.type }}</span>
-                                            <span class="badge" v-if="fb.severity" :class="{'bg-danger': fb.severity === 'Critical', 'bg-warning text-dark': fb.severity === 'High', 'bg-info text-dark': fb.severity === 'Medium', 'bg-light text-dark': fb.severity === 'Low'}">{{ fb.severity }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Link>
+                                </Link>
+                            </template>
                         </div>
                         <div class="p-4 text-center" v-else>
                             <p class="text-muted mb-0">No open feedback from you right now.</p>

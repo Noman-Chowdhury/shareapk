@@ -145,9 +145,10 @@ const filteredFeedbacks = computed(() => {
                                             <img v-if="fb.build?.project?.icon_url" :src="'/storage/' + fb.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
                                             <i v-else class="bi bi-box text-muted" style="font-size: 10px;"></i>
                                         </div>
-                                        <Link :href="route('builds.show', fb.build?.id)" class="text-decoration-none small">
+                                        <Link v-if="fb.build?.id" :href="route('builds.show', fb.build.id)" class="text-decoration-none small">
                                             {{ fb.build?.project?.name || 'Unknown Project' }} v{{ fb.build?.version_name }}
                                         </Link>
+                                        <span v-else class="text-muted small">Unknown Project</span>
                                     </div>
                                 </td>
                                 <td><span class="badge" :class="feedbackStatusBadge(fb.status)">{{ fb.status }}</span></td>
