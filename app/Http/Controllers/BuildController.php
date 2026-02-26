@@ -53,27 +53,46 @@ class BuildController extends Controller
 
         if (preg_match_all("/application-label(?:-[a-z-_]+)?:\s*['\"]([^'\"]+)['\"]/i", $output, $matches)) {
             foreach ($matches[0] as $i => $fullLine) {
-                if (!str_contains($fullLine, '-')) {
-                    $res['app_name'] = $matches[1][$i];
+                $candidate = $matches[1][$i];
+                if (!str_contains($fullLine, '-') && !str_starts_with($candidate, '0x')) {
+                    $res['app_name'] = $candidate;
                     break;
                 }
             }
-            if (!$res['app_name']) $res['app_name'] = $matches[1][0];
+            // Fallback to any non-hex label
+            if (!$res['app_name'] || str_starts_with($res['app_name'], '0x')) {
+                foreach ($matches[1] as $candidate) {
+                    if (!str_starts_with($candidate, '0x')) {
+                        $res['app_name'] = $candidate;
+                        break;
+                    }
+                }
+            }
         }
         
-        if (!$res['app_name'] && preg_match("/application: label=['\"]([^'\"]+)['\"]/i", $output, $matches)) {
-            $res['app_name'] = $matches[1];
+        if ((!$res['app_name'] || str_starts_with($res['app_name'], '0x')) && preg_match("/application: label=['\"]([^'\"]+)['\"]/i", $output, $matches)) {
+            if (!str_starts_with($matches[1], '0x')) $res['app_name'] = $matches[1];
         }
 
         $bestIcon = null; $maxSize = 0;
         if (preg_match_all("/application-icon-(\d+):\s*['\"]([^'\"]+)['\"]/i", $output, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
-                $size = (int)$match[1];
-                if ($size >= $maxSize) { $maxSize = $size; $bestIcon = $match[2]; }
+                $size = (int)$match[1]; $path = $match[2];
+                // Prefer PNG over XML
+                if ($size >= $maxSize || (str_ends_with(strtolower($bestIcon ?? ''), '.xml') && !str_ends_with(strtolower($path), '.xml'))) {
+                    $maxSize = $size;
+                    $bestIcon = $path;
+                }
             }
         }
         if (!$bestIcon && preg_match("/icon=['\"]([^'\"]+)['\"]/i", $output, $matches)) {
             $bestIcon = $matches[1];
+        }
+
+        // Fix for Adaptive Icons (XML) - Find a PNG version in the APK (Skip library icons like Chucker)
+        if ($bestIcon && str_ends_with(strtolower($bestIcon), '.xml')) {
+            $pngSearch = shell_exec("/usr/bin/unzip -l " . escapeshellarg($fullPath) . " | grep -Ei 'ic_launcher.*\.png' | grep -iv 'chucker' | sort -rn | head -n 1 | awk '{print $4}'");
+            if (trim($pngSearch)) $bestIcon = trim($pngSearch);
         }
 
         if ($bestIcon) {
@@ -201,7 +220,10 @@ class BuildController extends Controller
                 ]);
             } else {
                 $updateData = [];
-                if ($appName && ($project->name === $packageName || $project->name === 'Admin' || $project->name === 'admin')) {
+                if ($appName && ($project->name === $packageName || 
+                                 $project->name === 'Admin' || 
+                                 $project->name === 'admin' || 
+                                 str_starts_with($project->name, '0x'))) {
                     $updateData['name'] = $appName;
                 }
                 if ($iconUrl) {
