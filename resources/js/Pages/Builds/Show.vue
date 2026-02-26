@@ -446,6 +446,11 @@ function formatBytes(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (
                         </div>
                         <textarea v-model="feedbackForm.description" class="input-premium text-xs min-h-[100px]" placeholder="Signal summary echo..." required></textarea>
                         
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Evidence Ingest</label>
+                            <input type="file" @change="handleFeedbackFiles" multiple class="input-premium text-[10px]" />
+                        </div>
+                        
                         <div class="flex gap-2 pt-4">
                             <button type="button" @click="closeModal" class="btn-premium-secondary text-[10px]">Dismiss</button>
                             <button type="submit" class="flex-grow btn-premium-indigo text-[10px]">{{ editingFeedback ? 'Commit Logic' : 'Broadcast Signal' }}</button>
@@ -455,27 +460,52 @@ function formatBytes(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (
 
                 <!-- Assignment Modal -->
                 <div v-if="activeModal === 'task'" class="premium-card max-w-sm w-full p-8 animate-scale-in">
-                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-6">Operational Assignment</h3>
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-6">{{ editingTask ? 'Revise Operation' : 'Operational Assignment' }}</h3>
                     <form @submit.prevent="submitTask" class="space-y-4">
                         <input v-model="taskForm.title" class="input-premium text-sm font-bold" placeholder="Operational Objective..." required />
+                        
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Execution Briefing</label>
+                            <textarea v-model="taskForm.description" class="input-premium text-xs min-h-[80px]" placeholder="Technical requirements or objectives..."></textarea>
+                        </div>
+
                         <div class="grid grid-cols-2 gap-3">
                              <div class="space-y-1">
                                 <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Agent</label>
                                 <select v-model="taskForm.assignee_id" class="input-premium text-[11px]">
-                                    <option value="">Pool</option>
+                                    <option value="">Pool Sync</option>
                                     <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
                                 </select>
                              </div>
                              <div class="space-y-1">
-                                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Tier</label>
-                                <select v-model="taskForm.priority" class="input-premium text-[11px]">
+                                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Priority Tier</label>
+                                <select v-model="taskForm.priority" class="input-premium text-[11px] font-bold">
                                     <option>Low</option><option>Medium</option><option>High</option><option>Urgent</option>
                                 </select>
                              </div>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Registry State</label>
+                                <select v-model="taskForm.status" class="input-premium text-[11px] font-bold">
+                                    <option>Todo</option><option>In Progress</option><option>Done</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Deadline Stamp</label>
+                                <input v-model="taskForm.due_date" type="date" class="input-premium text-[11px] font-bold" />
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Attachment Ingest</label>
+                            <input type="file" @change="handleTaskFiles" multiple class="input-premium text-[10px]" />
+                        </div>
+
                         <div class="flex gap-2 pt-4">
                             <button type="button" @click="closeModal" class="btn-premium-secondary text-[10px]">Cancel</button>
-                            <button type="submit" class="flex-grow btn-premium-indigo text-[10px]">Initialize Operation</button>
+                            <button type="submit" class="flex-grow btn-premium-indigo text-[10px]">{{ editingTask ? 'Update Protocol' : 'Initialize Operation' }}</button>
                         </div>
                     </form>
                 </div>
