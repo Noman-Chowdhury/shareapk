@@ -17,7 +17,7 @@ import { Link } from '@inertiajs/vue3';
                     </svg>
                 </div>
                 <div class="text-center">
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tighter uppercase">Antigravity</h1>
+                    <h1 class="text-2xl font-black text-slate-900 tracking-tighter uppercase">Share Apk</h1>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">APK Distribution Cloud</p>
                 </div>
             </Link>

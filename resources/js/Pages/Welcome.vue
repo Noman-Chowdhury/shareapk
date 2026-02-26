@@ -29,8 +29,8 @@ defineProps({
                         <i class="bi bi-android2 text-white text-xl"></i>
                     </div>
                 <div class="hidden sm:block">
-                    <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase leading-none">Antigravity</h1>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">APK Distribution</p>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tighter uppercase leading-none">Share Apk</h1>
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Distribution Hub</p>
                 </div>
                 </Link>
                 
@@ -204,7 +204,7 @@ defineProps({
                     <div class="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center">
                         <i class="bi bi-android2 text-white"></i>
                     </div>
-                    <span class="text-lg font-black text-slate-800 tracking-tighter uppercase">Antigravity</span>
+                    <span class="text-lg font-black text-slate-800 tracking-tighter uppercase">Share Apk</span>
                 </div>
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-loose">
                     &copy; 2026 Proprietary Systems • Built by <span class="text-slate-900">DeepMind Advanced Coding Division</span><br>

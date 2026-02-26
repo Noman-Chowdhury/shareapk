@@ -220,7 +220,7 @@ function formatBytes(bytes) {
                         <div class="p-4 bg-white rounded-xl border border-rose-100 text-[11px] font-bold text-rose-600 leading-relaxed shadow-sm">
                             {{ analysisError }}
                         </div>
-                        <button @click="form.apk_file = null; analysisError = null" class="text-rose-500 text-[10px] font-black uppercase tracking-[0.2em] hover:underline">Reset Binary Probe</button>
+                        <button @click="form.apk_file = null; analysisError = null" class="text-rose-500 text-[10px] font-black uppercase tracking-[0.2em] hover:text-rose-600 transition-colors">Reset Binary Probe</button>
                     </div>
 
                     <!-- Engine Idle -->

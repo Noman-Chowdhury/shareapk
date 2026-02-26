@@ -264,7 +264,7 @@ function formatBytes(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (
                                 <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed mb-4">{{ fb.description }}</p>
                                 <div class="flex justify-between items-center pt-4 border-t border-slate-50">
                                     <span class="text-[9px] font-black text-slate-400">LOGGED BY: {{ fb.user?.name || 'System Agent' }}</span>
-                                    <Link :href="route('feedback.show', fb.id)" class="text-[10px] font-black text-indigo-600 hover:underline">Full Protocol Trace</Link>
+                                    <Link :href="route('feedback.show', fb.id)" class="text-[10px] font-black text-indigo-600 hover:text-indigo-800 transition-colors">Full Protocol Trace</Link>
                                 </div>
                             </div>
                         </div>
@@ -338,7 +338,7 @@ function formatBytes(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (
                                         </td>
                                         <td class="px-6 py-5 text-center font-bold text-slate-800">{{ link.download_count }}</td>
                                         <td class="px-6 py-5 text-right font-black">
-                                            <button @click="deleteShare(link.id)" class="text-rose-500 hover:underline uppercase tracking-widest text-[10px]">Revoke Access</button>
+                                            <button @click="deleteShare(link.id)" class="text-rose-500 hover:text-rose-700 transition-colors uppercase tracking-widest text-[10px]">Revoke Access</button>
                                         </td>
                                     </tr>
                                     <tr v-if="!build.share_links?.length">

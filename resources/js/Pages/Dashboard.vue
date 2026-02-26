@@ -94,7 +94,7 @@ function formatDate(dateStr) {
                 <div class="premium-card overflow-hidden animate-slide-up" style="animation-delay: 0.5s">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Deployment Intelligence</h3>
-                        <Link :href="route('projects.index')" class="text-[10px] font-black text-indigo-600 hover:underline uppercase tracking-widest">Protocol Index</Link>
+                        <Link :href="route('projects.index')" class="text-[10px] font-black text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-widest">Protocol Index</Link>
                     </div>
                     
                     <div class="overflow-x-auto">

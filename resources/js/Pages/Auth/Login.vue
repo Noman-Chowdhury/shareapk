@@ -53,7 +53,7 @@ const submit = () => {
                         required
                         autofocus
                         autocomplete="username"
-                        placeholder="operator@antigravity.dev"
+                        placeholder="operator@shareapk.dev"
                     />
                 </div>
                 <p v-if="form.errors.email" class="mt-1.5 text-[10px] font-black uppercase text-rose-500 tracking-tighter">{{ form.errors.email }}</p>
@@ -95,7 +95,7 @@ const submit = () => {
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors underline underline-offset-4 decoration-indigo-200"
+                    class="text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors"
                 >
                     Lost access?
                 </Link>

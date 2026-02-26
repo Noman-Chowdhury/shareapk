@@ -179,7 +179,7 @@ function roleColor(role) {
 
                         <div class="space-y-1">
                             <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Communication Port (Email)</label>
-                            <input v-model="userForm.email" type="email" class="input-premium font-bold" placeholder="operator@antigravity.dev" required />
+                            <input v-model="userForm.email" type="email" class="input-premium font-bold" placeholder="operator@shareapk.dev" required />
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

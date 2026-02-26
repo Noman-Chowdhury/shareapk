@@ -18,7 +18,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Establish Identity • Antigravity" />
+        <Head title="Establish Identity • Share Apk" />
 
         <form @submit.prevent="submit" class="space-y-6">
             <div class="space-y-2 text-center mb-8">
@@ -59,7 +59,7 @@ const submit = () => {
                         v-model="form.email"
                         required
                         autocomplete="username"
-                        placeholder="operator@antigravity.dev"
+                        placeholder="operator@shareapk.dev"
                     />
                 </div>
                 <p v-if="form.errors.email" class="mt-1.5 text-[10px] font-black uppercase text-rose-500 tracking-tighter">{{ form.errors.email }}</p>

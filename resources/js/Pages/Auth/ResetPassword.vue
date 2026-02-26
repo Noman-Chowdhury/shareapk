@@ -33,7 +33,7 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
+        <Head title="Update Access Key • Share Apk" />
 
         <form @submit.prevent="submit">
             <div>

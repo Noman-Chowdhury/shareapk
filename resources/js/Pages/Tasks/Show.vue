@@ -137,7 +137,7 @@ function formatDate(dateStr) {
                                     <i class="bi bi-calendar-event mr-1.5"></i> Deadline: {{ (new Date(task.due_date)).toLocaleDateString() }}
                                 </span>
                             </div>
-                            <h1 class="text-3xl font-black text-slate-900 leading-tight tracking-tight underline decoration-indigo-200 underline-offset-8">
+                            <h1 class="text-3xl font-black text-slate-900 leading-tight tracking-tight">
                                 {{ task.title }}
                             </h1>
                         </div>
@@ -249,7 +249,7 @@ function formatDate(dateStr) {
                         <div class="p-8 space-y-6">
                             <div class="space-y-1">
                                 <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Project Branch</span>
-                                <Link v-if="task.build" :href="route('builds.show', task.build.id)" class="text-sm font-black text-slate-900 hover:text-indigo-600 transition-colors block underline decoration-slate-200 underline-offset-4">
+                                <Link v-if="task.build" :href="route('builds.show', task.build.id)" class="text-sm font-black text-slate-900 hover:text-indigo-600 transition-colors block">
                                     {{ task.build?.project?.name || 'Isolated Root' }} v{{ task.build?.version_name }}
                                 </Link>
                                 <span v-else class="text-sm font-bold text-slate-400">Universal Context</span>

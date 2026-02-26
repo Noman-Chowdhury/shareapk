@@ -20,11 +20,11 @@ function getActionBadge(action) {
 </script>
 
 <template>
-    <Head title="Activity Logs" />
+    <Head title="Registry Activity Logs" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="h4 fw-bold mb-0">System Activity Logs</h2>
+            <h2 class="text-sm font-black text-slate-800 uppercase tracking-widest px-1">Registry Activity Logs</h2>
         </template>
 
         <div class="card border-0 shadow-sm">
