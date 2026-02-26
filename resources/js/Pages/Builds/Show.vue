@@ -211,6 +211,7 @@ function formatBytes(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (
                     <button v-for="tab in ['overview', 'feedback', 'tasks', 'share', 'downloads']" :key="tab" @click="activeTab = tab" class="pb-4 text-xs font-black uppercase tracking-widest transition-all relative" :class="activeTab === tab ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'">
                         {{ tab === 'share' ? 'Public Sync' : tab }}
                         <span v-if="tab === 'feedback' && build.feedbacks_count" class="ml-1.5 px-1.5 py-0.5 rounded-lg bg-indigo-600 text-white text-[8px] tracking-normal">{{ build.feedbacks_count }}</span>
+                        <span v-if="tab === 'tasks' && build.tasks_count" class="ml-1.5 px-1.5 py-0.5 rounded-lg bg-slate-900 text-white text-[8px] tracking-normal">{{ build.tasks_count }}</span>
                         <div v-if="activeTab === tab" class="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full animate-fade-in"></div>
                     </button>
                 </div>
@@ -283,24 +284,27 @@ function formatBytes(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : (
                             <p class="font-bold uppercase tracking-[0.2em] text-[10px]">Queue Clear. No active operations.</p>
                         </div>
                         <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div v-for="tk in build.tasks" :key="tk.id" class="premium-card p-5 animate-slide-up group">
-                                <div class="flex justify-between mb-3">
-                                    <span class="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{{ tk.title }}</span>
-                                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button @click="openModal('task', tk)" class="text-slate-300 hover:text-indigo-500"><i class="bi bi-pencil-square"></i></button>
-                                        <button @click="deleteTask(tk.id) " class="text-slate-300 hover:text-rose-500"><i class="bi bi-trash"></i></button>
+                            <div v-for="tk in build.tasks" :key="tk.id" class="premium-card p-5 animate-slide-up group hover:shadow-lg transition-all border border-slate-100">
+                                <div class="flex justify-between items-start mb-3">
+                                    <Link :href="route('tasks.show', tk.id)" class="text-sm font-black text-slate-800 hover:text-indigo-600 transition-colors uppercase tracking-tight leading-tight flex-grow pr-4">{{ tk.title }}</Link>
+                                    <div class="flex gap-2">
+                                        <button @click="openModal('task', tk)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all"><i class="bi bi-pencil-square text-xs"></i></button>
+                                        <button @click="deleteTask(tk.id)" class="w-7 h-7 flex items-center justify-center rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all"><i class="bi bi-trash text-xs"></i></button>
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap gap-2 mb-4">
-                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg bg-slate-900 text-white">{{ tk.status }}</span>
-                                    <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-lg" :class="tk.priority === 'Urgent' ? 'bg-rose-500 text-white' : 'bg-slate-100 text-slate-500'">{{ tk.priority }}</span>
+                                    <span class="text-[8px] font-black uppercase px-2 py-0.5 rounded-md bg-slate-900 text-white tracking-widest">{{ tk.status }}</span>
+                                    <span class="text-[8px] font-black uppercase px-2 py-0.5 rounded-md border" :class="tk.priority === 'Urgent' ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-slate-50 text-slate-500 border-slate-100'">{{ tk.priority }} Tier</span>
                                 </div>
                                 <div class="pt-3 border-t border-slate-50 flex items-center justify-between mt-auto">
                                     <div class="flex items-center gap-2">
-                                        <div class="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center text-[9px] font-bold text-indigo-600">{{ tk.assignee?.name.charAt(0) || '?' }}</div>
-                                        <span class="text-[10px] font-bold text-slate-500">{{ tk.assignee?.name || 'Unassigned' }}</span>
+                                        <div class="w-6 h-6 rounded-lg bg-indigo-50 flex items-center justify-center text-[9px] font-black text-indigo-600 border border-indigo-100/50">{{ (tk.assignee?.name || 'U').charAt(0) }}</div>
+                                        <span class="text-[10px] font-black text-slate-500 uppercase tracking-tight">{{ tk.assignee?.name || 'Unbound' }}</span>
                                     </div>
-                                    <span v-if="tk.due_date" class="text-[9px] font-black text-rose-500 uppercase">DUE: {{ formatDate(tk.due_date) }}</span>
+                                    <div class="flex flex-col items-end">
+                                        <span v-if="tk.due_date" class="text-[8px] font-black text-rose-500 uppercase tracking-widest">{{ formatDate(tk.due_date) }}</span>
+                                        <Link :href="route('tasks.show', tk.id)" class="text-[9px] font-black text-indigo-600 hover:underline uppercase tracking-tighter mt-1">Details <i class="bi bi-arrow-right"></i></Link>
+                                    </div>
                                 </div>
                             </div>
                         </div>
