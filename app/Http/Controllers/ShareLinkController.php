@@ -127,7 +127,8 @@ class ShareLinkController extends Controller
 
         return Storage::disk('public')->download(
             $shareLink->build->file_path,
-            $shareLink->build->project->name . '_v' . $shareLink->build->version_name . '.apk'
+            $shareLink->build->project->name . '_v' . $shareLink->build->version_name . '.apk',
+            ['Content-Type' => 'application/vnd.android.package-archive']
         );
     }
 }

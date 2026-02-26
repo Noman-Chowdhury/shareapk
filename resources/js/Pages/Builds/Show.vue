@@ -8,7 +8,7 @@ import QrcodeVue from 'qrcode.vue';
 const props = defineProps({ build: Object, users: Array });
 
 const currentUrl = computed(() => {
-    return window.location.origin + route('builds.download', props.build.id);
+    return route('builds.download', props.build.id);
 });
 
 const activeTab = ref('overview');

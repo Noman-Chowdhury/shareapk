@@ -299,7 +299,8 @@ class BuildController extends Controller
 
         return Storage::disk('public')->download(
             $build->file_path,
-            $build->project->name . '_v' . $build->version_name . '.apk'
+            $build->project->name . '_v' . $build->version_name . '.apk',
+            ['Content-Type' => 'application/vnd.android.package-archive']
         );
     }
 
