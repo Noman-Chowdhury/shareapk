@@ -5,13 +5,18 @@ import { ref, computed } from 'vue';
 import * as bootstrap from 'bootstrap';
 
 const props = defineProps({
-    feedbacks: Array
+    feedbacks: Array,
+    users: Array,
 });
 
 const editingFeedback = ref(null);
+const feedbackAttachmentsInput = ref(null);
+const feedbackNewFiles = ref([]);
+const feedbackKeepAttachments = ref([]);
+
 const feedbackForm = useForm({
     title: '', description: '', type: 'Bug', severity: 'Medium', status: 'Open',
-    device_model: '', os_version: '', screen_size: ''
+    device_model: '', os_version: '', screen_size: '', assignee_id: '',
 });
 
 function openFeedbackModal(fb) {
@@ -24,22 +29,45 @@ function openFeedbackModal(fb) {
     feedbackForm.device_model = fb.device_model || '';
     feedbackForm.os_version = fb.os_version || '';
     feedbackForm.screen_size = fb.screen_size || '';
-    
+    feedbackForm.assignee_id = fb.assignee_id || '';
+    feedbackNewFiles.value = [];
+    feedbackKeepAttachments.value = (fb.attachments || []).map(a => a.path);
+
     const modalEl = document.getElementById('feedbackModal');
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     modal.show();
 }
 
+function handleFeedbackFiles(e) {
+    feedbackNewFiles.value = Array.from(e.target.files);
+}
+
+function removeKeepAttachment(path) {
+    feedbackKeepAttachments.value = feedbackKeepAttachments.value.filter(p => p !== path);
+}
+
 function submitFeedback() {
     const url = route('feedback.update', editingFeedback.value.id);
-    feedbackForm.put(url, {
+    const payload = feedbackForm.data();
+
+    feedbackNewFiles.value.forEach((file, i) => {
+        payload[`new_attachments[${i}]`] = file;
+    });
+    feedbackKeepAttachments.value.forEach((path, i) => {
+        payload[`keep_attachments[${i}]`] = path;
+    });
+    payload['_method'] = 'PUT';
+
+    feedbackForm.transform(() => payload).post(url, {
+        forceFormData: true,
         preserveScroll: true,
         onSuccess: () => {
-            const modalEl = document.getElementById('feedbackModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
+            const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
             if (modal) modal.hide();
             feedbackForm.reset();
+            feedbackNewFiles.value = [];
             editingFeedback.value = null;
+            if (feedbackAttachmentsInput.value) feedbackAttachmentsInput.value.value = '';
         },
     });
 }
@@ -78,7 +106,7 @@ const filteredFeedbacks = computed(() => {
     <AuthenticatedLayout>
         <template #header>
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                <h2 class="h4 mb-0 fw-bold">All Feedback & Bug Reports</h2>
+                <h2 class="h4 mb-0 fw-bold">All Feedback &amp; Bug Reports</h2>
                 <div class="d-flex gap-2">
                     <input v-model="searchQuery" type="text" class="form-control form-control-sm" placeholder="Search feedback or project..." style="width: 250px;">
                     <select v-model="statusFilter" class="form-select form-select-sm" style="width: 150px;">
@@ -102,6 +130,8 @@ const filteredFeedbacks = computed(() => {
                                 <th>Status</th>
                                 <th>Severity</th>
                                 <th>Author</th>
+                                <th>Assignee</th>
+                                <th>Attachments</th>
                                 <th>Date</th>
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
@@ -123,6 +153,20 @@ const filteredFeedbacks = computed(() => {
                                 <td><span class="badge" :class="feedbackStatusBadge(fb.status)">{{ fb.status }}</span></td>
                                 <td><span class="badge" :class="severityBadge(fb.severity)">{{ fb.severity }}</span></td>
                                 <td>{{ fb.author?.name || 'Unknown' }}</td>
+                                <td>
+                                    <span v-if="fb.assignee" class="small">{{ fb.assignee.name }}</span>
+                                    <span v-else class="text-muted small fst-italic">—</span>
+                                </td>
+                                <td>
+                                    <div v-if="fb.attachments && fb.attachments.length" class="d-flex flex-wrap gap-1">
+                                        <a v-for="att in fb.attachments" :key="att.path"
+                                           :href="'/storage/' + att.path" target="_blank"
+                                           class="badge bg-light text-dark border text-decoration-none small">
+                                            📎 {{ att.name }}
+                                        </a>
+                                    </div>
+                                    <span v-else class="text-muted small">—</span>
+                                </td>
                                 <td class="text-muted small">{{ new Date(fb.created_at).toLocaleDateString() }}</td>
                                 <td class="text-end pe-4">
                                     <button class="btn btn-sm btn-outline-secondary me-2" @click="openFeedbackModal(fb)">Edit</button>
@@ -130,7 +174,7 @@ const filteredFeedbacks = computed(() => {
                                 </td>
                             </tr>
                             <tr v-if="!filteredFeedbacks.length">
-                                <td colspan="6" class="text-center py-4 text-muted">No feedback has been reported globally.</td>
+                                <td colspan="8" class="text-center py-4 text-muted">No feedback has been reported globally.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -179,9 +223,41 @@ const filteredFeedbacks = computed(() => {
                                     <label class="form-label">OS Version (optional)</label>
                                     <input v-model="feedbackForm.os_version" type="text" class="form-control" placeholder="e.g. Android 14">
                                 </div>
+                                <div class="col-4">
+                                    <label class="form-label">Assign To</label>
+                                    <select v-model="feedbackForm.assignee_id" class="form-select">
+                                        <option value="">— Unassigned —</option>
+                                        <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                                    </select>
+                                </div>
                                 <div class="col-12">
                                     <label class="form-label">Description <span class="text-danger">*</span></label>
                                     <textarea v-model="feedbackForm.description" class="form-control" rows="4" required></textarea>
+                                </div>
+                                <!-- Existing Attachments -->
+                                <div class="col-12" v-if="editingFeedback && editingFeedback.attachments && editingFeedback.attachments.length">
+                                    <label class="form-label">Existing Attachments</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <div v-for="att in editingFeedback.attachments" :key="att.path"
+                                             class="d-flex align-items-center gap-1 border rounded px-2 py-1 small"
+                                             :class="feedbackKeepAttachments.includes(att.path) ? '' : 'text-decoration-line-through text-muted opacity-50'">
+                                            <a :href="'/storage/' + att.path" target="_blank" class="text-truncate" style="max-width:150px;">📎 {{ att.name }}</a>
+                                            <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger"
+                                                    @click="removeKeepAttachment(att.path)"
+                                                    v-if="feedbackKeepAttachments.includes(att.path)"
+                                                    title="Remove">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- New Attachments -->
+                                <div class="col-12">
+                                    <label class="form-label">Add More Attachments <span class="text-muted small">(images, PDF, DOC, max 10MB each)</span></label>
+                                    <input ref="feedbackAttachmentsInput" type="file" class="form-control" multiple
+                                           accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                                           @change="handleFeedbackFiles">
+                                    <div v-if="feedbackNewFiles.length" class="text-muted small mt-1">
+                                        {{ feedbackNewFiles.length }} file(s) selected
+                                    </div>
                                 </div>
                             </div>
                         </div>

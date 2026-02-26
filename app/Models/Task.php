@@ -18,10 +18,12 @@ class Task extends Model
         'priority',
         'status',
         'due_date',
+        'attachments',
     ];
 
     protected $casts = [
-        'due_date' => 'date',
+        'due_date'    => 'date',
+        'attachments' => 'array',
     ];
 
     // Task belongs to a build

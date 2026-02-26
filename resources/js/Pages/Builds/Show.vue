@@ -40,12 +40,21 @@ function copyToClipboard(text) {
 }
 
 const editingFeedback = ref(null);
+const feedbackAttachmentsInput = ref(null);
+const feedbackNewFiles = ref([]);
+const feedbackKeepAttachments = ref([]);
+
 const feedbackForm = useForm({
     title: '', description: '', type: 'Bug', severity: 'Medium', status: 'Open',
-    device_model: '', os_version: '', screen_size: ''
+    device_model: '', os_version: '', screen_size: '',
+    assignee_id: '',
 });
 
 const editingTask = ref(null);
+const taskAttachmentsInput = ref(null);
+const taskNewFiles = ref([]);
+const taskKeepAttachments = ref([]);
+
 const taskForm = useForm({
     title: '', description: '', priority: 'Medium', status: 'Todo',
     assignee_id: '', due_date: ''
@@ -53,6 +62,7 @@ const taskForm = useForm({
 
 function openFeedbackModal(fb = null) {
     editingFeedback.value = fb;
+    feedbackNewFiles.value = [];
     if (fb) {
         feedbackForm.title = fb.title;
         feedbackForm.description = fb.description;
@@ -62,17 +72,30 @@ function openFeedbackModal(fb = null) {
         feedbackForm.device_model = fb.device_model || '';
         feedbackForm.os_version = fb.os_version || '';
         feedbackForm.screen_size = fb.screen_size || '';
+        feedbackForm.assignee_id = fb.assignee_id || '';
+        feedbackKeepAttachments.value = (fb.attachments || []).map(a => a.path);
     } else {
         feedbackForm.reset();
         feedbackForm.status = 'Open';
+        feedbackForm.assignee_id = '';
+        feedbackKeepAttachments.value = [];
     }
     const modalEl = document.getElementById('feedbackModal');
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     modal.show();
 }
 
+function handleFeedbackFiles(e) {
+    feedbackNewFiles.value = Array.from(e.target.files);
+}
+
+function removeKeepAttachment(path) {
+    feedbackKeepAttachments.value = feedbackKeepAttachments.value.filter(p => p !== path);
+}
+
 function openTaskModal(tk = null) {
     editingTask.value = tk;
+    taskNewFiles.value = [];
     if (tk) {
         taskForm.title = tk.title;
         taskForm.description = tk.description || '';
@@ -80,12 +103,22 @@ function openTaskModal(tk = null) {
         taskForm.status = tk.status || 'Todo';
         taskForm.assignee_id = tk.assignee_id || '';
         taskForm.due_date = tk.due_date || '';
+        taskKeepAttachments.value = (tk.attachments || []).map(a => a.path);
     } else {
         taskForm.reset();
+        taskKeepAttachments.value = [];
     }
     const modalEl = document.getElementById('taskModal');
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     modal.show();
+}
+
+function handleTaskFiles(e) {
+    taskNewFiles.value = Array.from(e.target.files);
+}
+
+function removeTaskKeepAttachment(path) {
+    taskKeepAttachments.value = taskKeepAttachments.value.filter(p => p !== path);
 }
 
 // Comment Form (now for Tasks & Feedback)
@@ -127,21 +160,54 @@ function submitComment() {
 }
 
 function submitFeedback() {
-    const url = editingFeedback.value 
-        ? route('feedback.update', editingFeedback.value.id) 
+    const isEditing = !!editingFeedback.value;
+    const url = isEditing
+        ? route('feedback.update', editingFeedback.value.id)
         : route('feedback.store', props.build.id);
-    const method = editingFeedback.value ? 'put' : 'post';
 
-    feedbackForm[method](url, {
-        preserveScroll: true,
-        onSuccess: () => {
-            const modalEl = document.getElementById('feedbackModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            feedbackForm.reset();
-            editingFeedback.value = null;
-        },
-    });
+    // Build a plain form object with files for multipart upload
+    const payload = feedbackForm.data();
+
+    // Attach files
+    if (feedbackNewFiles.value.length) {
+        feedbackNewFiles.value.forEach((file, i) => {
+            payload[`new_attachments[${i}]`] = file;
+        });
+    }
+
+    // Tell server which old attachments to keep (for edit)
+    if (isEditing) {
+        feedbackKeepAttachments.value.forEach((path, i) => {
+            payload[`keep_attachments[${i}]`] = path;
+        });
+        // Laravel doesn't support true PUT with files, use POST + _method
+        payload['_method'] = 'PUT';
+        feedbackForm.transform(() => payload).post(url, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                if (modal) modal.hide();
+                feedbackForm.reset();
+                feedbackNewFiles.value = [];
+                editingFeedback.value = null;
+                if (feedbackAttachmentsInput.value) feedbackAttachmentsInput.value.value = '';
+            },
+        });
+    } else {
+        feedbackForm.transform(() => payload).post(url, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                if (modal) modal.hide();
+                feedbackForm.reset();
+                feedbackNewFiles.value = [];
+                editingFeedback.value = null;
+                if (feedbackAttachmentsInput.value) feedbackAttachmentsInput.value.value = '';
+            },
+        });
+    }
 }
 
 function deleteFeedback(id) {
@@ -151,21 +217,51 @@ function deleteFeedback(id) {
 }
 
 function submitTask() {
-    const url = editingTask.value 
+    const isEditing = !!editingTask.value;
+    const url = isEditing 
         ? route('tasks.update', editingTask.value.id) 
         : route('tasks.store', props.build.id);
-    const method = editingTask.value ? 'put' : 'post';
+    
+    const payload = taskForm.data();
 
-    taskForm[method](url, {
-        preserveScroll: true,
-        onSuccess: () => {
-            const modalEl = document.getElementById('taskModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-            taskForm.reset();
-            editingTask.value = null;
-        },
-    });
+    // Attach files
+    if (taskNewFiles.value.length) {
+        taskNewFiles.value.forEach((file, i) => {
+            payload[`new_attachments[${i}]`] = file;
+        });
+    }
+
+    if (isEditing) {
+        taskKeepAttachments.value.forEach((path, i) => {
+            payload[`keep_attachments[${i}]`] = path;
+        });
+        payload['_method'] = 'PUT';
+        taskForm.transform(() => payload).post(url, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
+                if (modal) modal.hide();
+                taskForm.reset();
+                taskNewFiles.value = [];
+                editingTask.value = null;
+                if (taskAttachmentsInput.value) taskAttachmentsInput.value.value = '';
+            },
+        });
+    } else {
+        taskForm.transform(() => payload).post(url, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('taskModal'));
+                if (modal) modal.hide();
+                taskForm.reset();
+                taskNewFiles.value = [];
+                editingTask.value = null;
+                if (taskAttachmentsInput.value) taskAttachmentsInput.value.value = '';
+            },
+        });
+    }
 }
 
 function deleteTask(id) {
@@ -388,7 +484,7 @@ function formatDateShort(dateStr) {
                     <div v-else class="list-group list-group-flush">
                         <div v-for="fb in build.feedbacks" :key="fb.id" class="list-group-item px-0 py-3">
                             <div class="d-flex justify-content-between align-items-start">
-                                <div>
+                                <div class="flex-grow-1">
                                     <strong>{{ fb.title }}</strong>
                                     <div class="mt-1 d-flex gap-1">
                                         <span class="badge bg-secondary">{{ fb.type }}</span>
@@ -398,6 +494,17 @@ function formatDateShort(dateStr) {
                                     <p class="text-muted small mt-2 mb-1">{{ fb.description }}</p>
                                     <div v-if="fb.device_model || fb.os_version" class="text-muted small">
                                         📱 {{ fb.device_model }} {{ fb.os_version }}
+                                    </div>
+                                    <div v-if="fb.assignee" class="text-muted small mt-1">
+                                        👤 Assigned to: <strong>{{ fb.assignee.name }}</strong>
+                                    </div>
+                                    <!-- Attachments -->
+                                    <div v-if="fb.attachments && fb.attachments.length" class="mt-2 d-flex flex-wrap gap-1">
+                                        <a v-for="att in fb.attachments" :key="att.path"
+                                           :href="'/storage/' + att.path" target="_blank"
+                                           class="badge bg-light text-dark border text-decoration-none small">
+                                            📎 {{ att.name }}
+                                        </a>
                                     </div>
                                 </div>
                                 <div class="text-end text-muted small text-nowrap ms-3 d-flex flex-column align-items-end gap-1">
@@ -470,6 +577,15 @@ function formatDateShort(dateStr) {
                                         <span class="badge" :class="priorityBadge(task.priority)">{{ task.priority }}</span>
                                     </div>
                                     <p v-if="task.description" class="text-muted small mt-2 mb-0">{{ task.description }}</p>
+                                    
+                                    <!-- Task Attachments -->
+                                    <div v-if="task.attachments && task.attachments.length" class="mt-2 d-flex flex-wrap gap-1">
+                                        <a v-for="att in task.attachments" :key="att.path"
+                                           :href="'/storage/' + att.path" target="_blank"
+                                           class="badge bg-light text-dark border text-decoration-none small">
+                                            📎 {{ att.name }}
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="text-end text-muted small text-nowrap ms-3 d-flex flex-column align-items-end gap-1">
                                     <div>{{ task.assignee?.name ?? 'Unassigned' }}</div>
@@ -663,9 +779,41 @@ function formatDateShort(dateStr) {
                                 <label class="form-label">OS Version (optional)</label>
                                 <input v-model="feedbackForm.os_version" type="text" class="form-control" placeholder="e.g. Android 14">
                             </div>
+                            <div class="col-4">
+                                <label class="form-label">Assign To</label>
+                                <select v-model="feedbackForm.assignee_id" class="form-select">
+                                    <option value="">— Unassigned —</option>
+                                    <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                                </select>
+                            </div>
                             <div class="col-12">
                                 <label class="form-label">Description <span class="text-danger">*</span></label>
                                 <textarea v-model="feedbackForm.description" class="form-control" rows="4" required></textarea>
+                            </div>
+                            <!-- Existing Attachments (edit mode) -->
+                            <div class="col-12" v-if="editingFeedback && editingFeedback.attachments && editingFeedback.attachments.length">
+                                <label class="form-label">Existing Attachments</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div v-for="att in editingFeedback.attachments" :key="att.path"
+                                         class="d-flex align-items-center gap-1 border rounded px-2 py-1 small"
+                                         :class="feedbackKeepAttachments.includes(att.path) ? '' : 'text-decoration-line-through text-muted opacity-50'">
+                                        <a :href="'/storage/' + att.path" target="_blank" class="text-truncate" style="max-width:150px;">📎 {{ att.name }}</a>
+                                        <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger"
+                                                @click="removeKeepAttachment(att.path)"
+                                                v-if="feedbackKeepAttachments.includes(att.path)"
+                                                title="Remove">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- New Attachments -->
+                            <div class="col-12">
+                                <label class="form-label">{{ editingFeedback ? 'Add More Attachments' : 'Attachments' }} <span class="text-muted small">(images, PDF, DOC, max 10MB each)</span></label>
+                                <input ref="feedbackAttachmentsInput" type="file" class="form-control" multiple
+                                       accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                                       @change="handleFeedbackFiles">
+                                <div v-if="feedbackNewFiles.length" class="text-muted small mt-1">
+                                    {{ feedbackNewFiles.length }} file(s) selected
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -718,6 +866,33 @@ function formatDateShort(dateStr) {
                         <div class="col-12">
                             <label class="form-label">Description</label>
                             <textarea v-model="taskForm.description" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <!-- Existing Task Attachments (edit mode) -->
+                        <div class="col-12" v-if="editingTask && editingTask.attachments && editingTask.attachments.length">
+                            <label class="form-label">Existing Attachments</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div v-for="att in editingTask.attachments" :key="att.path"
+                                     class="d-flex align-items-center gap-1 border rounded px-2 py-1 small"
+                                     :class="taskKeepAttachments.includes(att.path) ? '' : 'text-decoration-line-through text-muted opacity-50'">
+                                    <a :href="'/storage/' + att.path" target="_blank" class="text-truncate" style="max-width:150px;">📎 {{ att.name }}</a>
+                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger"
+                                            @click="removeTaskKeepAttachment(att.path)"
+                                            v-if="taskKeepAttachments.includes(att.path)"
+                                            title="Remove">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- New Task Attachments -->
+                        <div class="col-12">
+                            <label class="form-label">{{ editingTask ? 'Add More Attachments' : 'Attachments' }}</label>
+                            <input ref="taskAttachmentsInput" type="file" class="form-control" multiple
+                                   accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                                   @change="handleTaskFiles">
+                            <div v-if="taskNewFiles.length" class="text-muted small mt-1">
+                                {{ taskNewFiles.length }} file(s) selected
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

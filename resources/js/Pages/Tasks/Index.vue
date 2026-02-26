@@ -10,6 +10,10 @@ const props = defineProps({
 });
 
 const editingTask = ref(null);
+const taskAttachmentsInput = ref(null);
+const taskNewFiles = ref([]);
+const taskKeepAttachments = ref([]);
+
 const taskForm = useForm({
     title: '', description: '', priority: 'Medium', status: 'Todo',
     assignee_id: '', due_date: ''
@@ -23,22 +27,50 @@ function openTaskModal(tk) {
     taskForm.status = tk.status || 'Todo';
     taskForm.assignee_id = tk.assignee_id || '';
     taskForm.due_date = tk.due_date || '';
+    taskNewFiles.value = [];
+    taskKeepAttachments.value = (tk.attachments || []).map(a => a.path);
     
     const modalEl = document.getElementById('taskModal');
     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
     modal.show();
 }
 
+function handleTaskFiles(e) {
+    taskNewFiles.value = Array.from(e.target.files);
+}
+
+function removeTaskKeepAttachment(path) {
+    taskKeepAttachments.value = taskKeepAttachments.value.filter(p => p !== path);
+}
+
 function submitTask() {
     const url = route('tasks.update', editingTask.value.id);
-    taskForm.put(url, {
+    const payload = taskForm.data();
+    
+    // Attach files
+    if (taskNewFiles.value.length) {
+        taskNewFiles.value.forEach((file, i) => {
+            payload[`new_attachments[${i}]`] = file;
+        });
+    }
+
+    taskKeepAttachments.value.forEach((path, i) => {
+        payload[`keep_attachments[${i}]`] = path;
+    });
+    
+    payload['_method'] = 'PUT';
+
+    taskForm.transform(() => payload).post(url, {
+        forceFormData: true,
         preserveScroll: true,
         onSuccess: () => {
             const modalEl = document.getElementById('taskModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
             taskForm.reset();
+            taskNewFiles.value = [];
             editingTask.value = null;
+            if (taskAttachmentsInput.value) taskAttachmentsInput.value.value = '';
         },
     });
 }
@@ -99,6 +131,7 @@ const filteredTasks = computed(() => {
                                 <th>Status</th>
                                 <th>Priority</th>
                                 <th>Assignee</th>
+                                <th>Attachments</th>
                                 <th>Due Date</th>
                                 <th class="text-end pe-4">Actions</th>
                             </tr>
@@ -120,6 +153,16 @@ const filteredTasks = computed(() => {
                                 <td><span class="badge" :class="taskStatusBadge(task.status)">{{ task.status }}</span></td>
                                 <td><span class="badge" :class="priorityBadge(task.priority)">{{ task.priority }}</span></td>
                                 <td>{{ task.assignee?.name || 'Unassigned' }}</td>
+                                <td>
+                                    <div v-if="task.attachments && task.attachments.length" class="d-flex flex-wrap gap-1">
+                                        <a v-for="att in task.attachments" :key="att.path"
+                                           :href="'/storage/' + att.path" target="_blank"
+                                           class="badge bg-light text-dark border text-decoration-none small">
+                                            📎 {{ att.name }}
+                                        </a>
+                                    </div>
+                                    <span v-else class="text-muted small">—</span>
+                                </td>
                                 <td class="text-muted small">
                                     <span :class="{'text-danger': task.due_date}">
                                         {{ task.due_date ? new Date(task.due_date).toLocaleDateString() : '—' }}
@@ -131,7 +174,7 @@ const filteredTasks = computed(() => {
                                 </td>
                             </tr>
                             <tr v-if="!filteredTasks.length">
-                                <td colspan="6" class="text-center py-4 text-muted">No tasks have been created globally.</td>
+                                <td colspan="7" class="text-center py-4 text-muted">No tasks have been created globally.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -179,6 +222,33 @@ const filteredTasks = computed(() => {
                             <div class="col-12">
                                 <label class="form-label">Description</label>
                                 <textarea v-model="taskForm.description" class="form-control" rows="3"></textarea>
+                            </div>
+                            
+                            <!-- Existing Task Attachments -->
+                            <div class="col-12" v-if="editingTask && editingTask.attachments && editingTask.attachments.length">
+                                <label class="form-label">Existing Attachments</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <div v-for="att in editingTask.attachments" :key="att.path"
+                                         class="d-flex align-items-center gap-1 border rounded px-2 py-1 small"
+                                         :class="taskKeepAttachments.includes(att.path) ? '' : 'text-decoration-line-through text-muted opacity-50'">
+                                        <a :href="'/storage/' + att.path" target="_blank" class="text-truncate" style="max-width:150px;">📎 {{ att.name }}</a>
+                                        <button type="button" class="btn btn-link btn-sm p-0 ms-1 text-danger"
+                                                @click="removeTaskKeepAttachment(att.path)"
+                                                v-if="taskKeepAttachments.includes(att.path)"
+                                                title="Remove">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- New Task Attachments -->
+                            <div class="col-12">
+                                <label class="form-label">Add More Attachments</label>
+                                <input ref="taskAttachmentsInput" type="file" class="form-control" multiple
+                                       accept="image/*,.pdf,.doc,.docx,.txt,.zip"
+                                       @change="handleTaskFiles">
+                                <div v-if="taskNewFiles.length" class="text-muted small mt-1">
+                                    {{ taskNewFiles.length }} file(s) selected
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer">

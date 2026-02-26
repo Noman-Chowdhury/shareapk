@@ -263,6 +263,7 @@ class BuildController extends Controller
             'uploader',
             'approver',
             'feedbacks.author',
+            'feedbacks.assignee',
             'feedbacks.comments.author',
             'tasks.creator',
             'tasks.assignee',

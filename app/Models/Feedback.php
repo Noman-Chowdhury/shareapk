@@ -12,6 +12,7 @@ class Feedback extends Model
     protected $fillable = [
         'build_id',
         'user_id',
+        'assignee_id',
         'title',
         'description',
         'type',
@@ -27,19 +28,21 @@ class Feedback extends Model
         'attachments' => 'array',
     ];
 
-    // Feedback belongs to a build
     public function build()
     {
         return $this->belongsTo(Build::class);
     }
 
-    // Feedback submitted by a user
     public function author()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Polymorphic comments on feedback
+    public function assignee()
+    {
+        return $this->belongsTo(User::class, 'assignee_id');
+    }
+
     public function comments()
     {
         return $this->morphMany(Comment::class, 'commentable');
