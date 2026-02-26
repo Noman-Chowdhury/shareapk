@@ -61,32 +61,52 @@ class BuildController extends Controller
             $iconPath = null;
             $iconData = null;
 
+            // App Name / Icon extraction using aapt (Full output parsing)
+            $aaptPath = '/usr/bin/aapt';
+            \Log::info("Analyzing APK at: " . $fullPath);
+            $aaptOutput = shell_exec("$aaptPath dump badging " . escapeshellarg($fullPath) . " 2>&1");
+            \Log::info("AAPT Output length: " . strlen((string)$aaptOutput));
+            
             if ($aaptOutput) {
-                // 1. App Name (Find the primary application-label first)
-                if (preg_match("/application-label:'([^']+)'/", $aaptOutput, $matches)) {
-                    $appName = $matches[1];
-                } elseif (preg_match("/application: label='([^']+)'/", $aaptOutput, $matches)) {
-                    $appName = $matches[1];
-                }
+                // Clean output from any weird null bytes or non-printable chars
+                $cleanOutput = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $aaptOutput);
+                file_put_contents(storage_path('app/aapt_debug.txt'), "FULL PATH: $fullPath\n\n" . $cleanOutput);
 
-                // 2. Icon Path (Find the best available icon)
-                $tempIconPath = null;
-                $currentBestSize = 0;
+                // 1. App Name - Extract all labels (Relaxed regex)
+                if (preg_match_all("/application-label(?:-[a-z-_]+)?:\s*['\"](.*?)['\"]/i", $cleanOutput, $matches)) {
+                    foreach ($matches[0] as $i => $fullLine) {
+                        if (!str_contains($fullLine, '-')) {
+                            $appName = $matches[1][$i];
+                            break;
+                        }
+                    }
+                    if (!$appName && !empty($matches[1])) $appName = $matches[1][0];
+                }
                 
-                // Extract all icons using match_all
-                if (preg_match_all("/application-icon-(\d+):'([^']+)'/", $aaptOutput, $matches, PREG_SET_ORDER)) {
+                // 2. Icon Path - Extract all icons
+                $currentBestSize = 0;
+                $tempIconPath = null;
+                if (preg_match_all("/application-icon-(\d+):\s*['\"](.*?)['\"]/i", $cleanOutput, $matches, PREG_SET_ORDER)) {
                     foreach ($matches as $match) {
                         $size = (int)$match[1];
-                        if ($size >= $currentBestSize && (str_ends_with(strtolower($match[2]), '.png') || str_ends_with(strtolower($match[2]), '.webp'))) {
+                        $path = $match[2];
+                        $pathLower = strtolower($path);
+                        if ($size >= $currentBestSize && (str_ends_with($pathLower, '.png') || str_ends_with($pathLower, '.webp'))) {
                             $currentBestSize = $size;
-                            $tempIconPath = $match[2];
+                            $tempIconPath = $path;
                         }
                     }
                 }
 
-                if (!$tempIconPath && preg_match("/icon='([^']+)'/", $aaptOutput, $matches)) {
+                // Final fallback if still empty
+                if (!$appName && preg_match("/label=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
+                    $appName = $matches[1];
+                }
+                if (!$tempIconPath && preg_match("/icon=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
                     $tempIconPath = $matches[1];
                 }
+
+                \Log::info("Parsed Result - Name: $appName | Icon: $tempIconPath");
 
                 // Extract Icon if found
                 if ($tempIconPath) {
@@ -97,7 +117,7 @@ class BuildController extends Controller
                     shell_exec("$unzipPath -p " . escapeshellarg($fullPath) . " " . escapeshellarg($tempIconPath) . " > " . escapeshellarg($tempIcon));
                     
                     if (file_exists($tempIcon) && filesize($tempIcon) > 0) {
-                        $mimeType = ($ext === 'webp') ? 'image/webp' : 'image/png';
+                        $mimeType = (strtolower($ext) === 'webp') ? 'image/webp' : 'image/png';
                         $iconData = 'data:'.$mimeType.';base64,' . base64_encode(file_get_contents($tempIcon));
                         @unlink($tempIcon);
                     }
@@ -195,28 +215,37 @@ class BuildController extends Controller
             $iconPath = null;
 
             if ($aaptOutput) {
-                // 1. App Name
-                if (preg_match("/application-label:'([^']+)'/", $aaptOutput, $matches)) {
-                    $appName = $matches[1];
-                } elseif (preg_match("/application: label='([^']+)'/", $aaptOutput, $matches)) {
-                    $appName = $matches[1];
-                }
+                // Same robust parsing as preAnalyze
+                $cleanOutput = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $aaptOutput);
 
-                // 2. Icon Path
-                $tempIconPath = null;
-                $currentBestSize = 0;
+                if (preg_match_all("/application-label(?:-[a-z-_]+)?:\s*['\"](.*?)['\"]/i", $cleanOutput, $matches)) {
+                    foreach ($matches[0] as $i => $fullLine) {
+                        if (!str_contains($fullLine, '-')) {
+                            $appName = $matches[1][$i];
+                            break;
+                        }
+                    }
+                    if (!$appName && !empty($matches[1])) $appName = $matches[1][0];
+                }
                 
-                if (preg_match_all("/application-icon-(\d+):'([^']+)'/", $aaptOutput, $matches, PREG_SET_ORDER)) {
+                $currentBestSize = 0;
+                $tempIconPath = null;
+                if (preg_match_all("/application-icon-(\d+):\s*['\"](.*?)['\"]/i", $cleanOutput, $matches, PREG_SET_ORDER)) {
                     foreach ($matches as $match) {
                         $size = (int)$match[1];
-                        if ($size >= $currentBestSize && (str_ends_with(strtolower($match[2]), '.png') || str_ends_with(strtolower($match[2]), '.webp'))) {
+                        $path = $match[2];
+                        $pathLower = strtolower($path);
+                        if ($size >= $currentBestSize && (str_ends_with($pathLower, '.png') || str_ends_with($pathLower, '.webp'))) {
                             $currentBestSize = $size;
-                            $tempIconPath = $match[2];
+                            $tempIconPath = $path;
                         }
                     }
                 }
 
-                if (!$tempIconPath && preg_match("/icon='([^']+)'/", $aaptOutput, $matches)) {
+                if (!$appName && preg_match("/label=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
+                    $appName = $matches[1];
+                }
+                if (!$tempIconPath && preg_match("/icon=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
                     $tempIconPath = $matches[1];
                 }
 
@@ -252,14 +281,27 @@ class BuildController extends Controller
                 $appName = ucwords(str_replace('_', ' ', end($segments)));
             }
 
-            // Automate Project Creation
-            $project = Project::firstOrCreate(
-                ['package_name' => $packageName],
-                ['name' => $appName ?? $packageName]
-            );
-
-            if ($iconPath) {
-                $project->update(['icon_url' => $iconPath]);
+            // Automate Project Creation or Update (Fix: Update existing records if we have a better name/icon)
+            $project = Project::where('package_name', $packageName)->first();
+            
+            if (!$project) {
+                $project = Project::create([
+                    'package_name' => $packageName,
+                    'name' => $appName ?? $packageName,
+                    'icon_url' => $iconPath
+                ]);
+            } else {
+                $updateData = [];
+                // Update Name if it's currently generic (like just the package name or 'Admin')
+                if ($appName && ($project->name === $packageName || $project->name === 'Admin' || $project->name === 'admin')) {
+                    $updateData['name'] = $appName;
+                }
+                if ($iconPath) {
+                    $updateData['icon_url'] = $iconPath;
+                }
+                if (!empty($updateData)) {
+                    $project->update($updateData);
+                }
             }
 
 
