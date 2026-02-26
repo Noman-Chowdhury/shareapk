@@ -170,12 +170,21 @@ const filteredFeedbacks = computed(() => {
                                 </td>
                                 <td class="text-muted small">{{ new Date(fb.created_at).toLocaleDateString() }}</td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-outline-secondary me-2" @click="openFeedbackModal(fb)">Edit</button>
-                                    <button class="btn btn-sm btn-outline-danger" @click="deleteFeedback(fb.id)">Delete</button>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <Link :href="route('feedback.show', fb.id)" class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </Link>
+                                        <button class="btn btn-sm btn-outline-primary" @click="openFeedbackModal(fb)" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" @click="deleteFeedback(fb.id)" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-if="!filteredFeedbacks.length">
-                                <td colspan="8" class="text-center py-4 text-muted">No feedback has been reported globally.</td>
+                                <td colspan="9" class="text-center py-4 text-muted">No feedback has been reported globally.</td>
                             </tr>
                         </tbody>
                     </table>

@@ -148,8 +148,8 @@ defineProps({
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush" v-if="myTasks && myTasks.length > 0">
                             <template v-for="task in myTasks" :key="task.id">
-                                <Link v-if="task.build_id"
-                                      :href="route('builds.show', task.build_id)" 
+                                <Link v-if="task.id"
+                                      :href="route('tasks.show', task.id)" 
                                       class="list-group-item list-group-item-action py-3">
                                     <div class="d-flex gap-3 align-items-center">
                                         <div class="bg-light rounded p-2 flex-shrink-0" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
@@ -188,8 +188,8 @@ defineProps({
                     <div class="card-body p-0">
                         <div class="list-group list-group-flush" v-if="myFeedback && myFeedback.length > 0">
                             <template v-for="fb in myFeedback" :key="fb.id">
-                                <Link v-if="fb.build_id"
-                                      :href="route('builds.show', fb.build_id)" 
+                                <Link v-if="fb.id"
+                                      :href="route('feedback.show', fb.id)" 
                                       class="list-group-item list-group-item-action py-3">
                                     <div class="d-flex gap-3 align-items-center">
                                         <div class="bg-light rounded p-2 flex-shrink-0" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;overflow:hidden;">

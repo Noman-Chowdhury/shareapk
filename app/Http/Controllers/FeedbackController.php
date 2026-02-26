@@ -22,6 +22,15 @@ class FeedbackController extends Controller
         ]);
     }
 
+    public function show(Feedback $feedback)
+    {
+        $feedback->load(['author', 'assignee', 'build.project', 'comments.author']);
+        return \Inertia\Inertia::render('Feedback/Show', [
+            'feedback' => $feedback,
+            'users'    => User::all(['id', 'name']),
+        ]);
+    }
+
     public function store(Request $request, Build $build)
     {
         $request->validate([

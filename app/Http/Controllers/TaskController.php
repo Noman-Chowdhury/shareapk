@@ -23,6 +23,15 @@ class TaskController extends Controller
         ]);
     }
 
+    public function show(Task $task)
+    {
+        $task->load(['creator', 'assignee', 'build.project', 'comments.author']);
+        return \Inertia\Inertia::render('Tasks/Show', [
+            'task' => $task,
+            'users' => User::all(['id', 'name']),
+        ]);
+    }
+
     public function store(Request $request, Build $build)
     {
         $request->validate([

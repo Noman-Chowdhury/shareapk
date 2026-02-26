@@ -139,7 +139,16 @@ const filteredTasks = computed(() => {
                         <tbody>
                             <tr v-for="task in filteredTasks" :key="task.id">
                                 <td class="ps-4">
-                                    <div class="fw-semibold">{{ task.title }}</div>
+                                    <Link :href="route('tasks.show', task.id)" class="fw-bold text-decoration-none text-dark">
+                                        #{{ task.id }}
+                                    </Link>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">
+                                        <Link :href="route('tasks.show', task.id)" class="text-decoration-none text-dark">
+                                            {{ task.title }}
+                                        </Link>
+                                    </div>
                                     <div class="d-flex align-items-center gap-2 mt-1">
                                         <div class="bg-light rounded p-1" style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
                                             <img v-if="task.build?.project?.icon_url" :src="'/storage/' + task.build.project.icon_url" style="max-width:100%;max-height:100%;object-fit:contain;" />
@@ -170,12 +179,21 @@ const filteredTasks = computed(() => {
                                     </span>
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-sm btn-outline-secondary me-2" @click="openTaskModal(task)">Edit</button>
-                                    <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)">Delete</button>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <Link :href="route('tasks.show', task.id)" class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </Link>
+                                        <button class="btn btn-sm btn-outline-primary" @click="openTaskModal(task)" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" @click="deleteTask(task.id)" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-if="!filteredTasks.length">
-                                <td colspan="7" class="text-center py-4 text-muted">No tasks have been created globally.</td>
+                                <td colspan="8" class="text-center py-4 text-muted">No tasks have been created globally.</td>
                             </tr>
                         </tbody>
                     </table>

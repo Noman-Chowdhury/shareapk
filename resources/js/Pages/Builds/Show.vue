@@ -485,7 +485,9 @@ function formatDateShort(dateStr) {
                         <div v-for="fb in build.feedbacks" :key="fb.id" class="list-group-item px-0 py-3">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
-                                    <strong>{{ fb.title }}</strong>
+                                    <Link :href="route('feedback.show', fb.id)" class="text-decoration-none text-dark fw-bold">
+                                        {{ fb.title }}
+                                    </Link>
                                     <div class="mt-1 d-flex gap-1">
                                         <span class="badge bg-secondary">{{ fb.type }}</span>
                                         <span v-if="fb.severity" class="badge" :class="severityBadge(fb.severity)">{{ fb.severity }}</span>
@@ -511,6 +513,7 @@ function formatDateShort(dateStr) {
                                     <div>{{ fb.author?.name ?? '—' }}</div>
                                     <div>{{ formatDateShort(fb.created_at) }}</div>
                                     <div class="mt-1">
+                                        <Link :href="route('feedback.show', fb.id)" class="btn btn-sm btn-link text-info text-decoration-none p-0 me-3">View Details</Link>
                                         <button class="btn btn-sm btn-link text-decoration-none p-0 me-3" @click="openCommentBox(fb, 'Feedback')">Comments ({{ fb.comments?.length || 0 }})</button>
                                         <button class="btn btn-sm btn-link text-decoration-none p-0 me-2" @click="openFeedbackModal(fb)">Edit</button>
                                         <button class="btn btn-sm btn-link text-danger text-decoration-none p-0" @click="deleteFeedback(fb.id)">Delete</button>
@@ -571,7 +574,9 @@ function formatDateShort(dateStr) {
                         <div v-for="task in build.tasks" :key="task.id" class="list-group-item px-0 py-3">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
-                                    <strong>{{ task.title }}</strong>
+                                    <Link :href="route('tasks.show', task.id)" class="text-decoration-none text-dark fw-bold">
+                                        {{ task.title }}
+                                    </Link>
                                     <div class="mt-1 d-flex gap-1">
                                         <span class="badge" :class="taskStatusBadge(task.status)">{{ task.status }}</span>
                                         <span class="badge" :class="priorityBadge(task.priority)">{{ task.priority }}</span>
@@ -591,6 +596,7 @@ function formatDateShort(dateStr) {
                                     <div>{{ task.assignee?.name ?? 'Unassigned' }}</div>
                                     <div v-if="task.due_date" class="text-danger">Due: {{ formatDateShort(task.due_date) }}</div>
                                     <div class="mt-1">
+                                        <Link :href="route('tasks.show', task.id)" class="btn btn-sm btn-link text-info text-decoration-none p-0 me-3">View Details</Link>
                                         <button class="btn btn-sm btn-link text-decoration-none p-0 me-3" @click="openCommentBox(task, 'Task')">Comments ({{ task.comments?.length || 0 }})</button>
                                         <button class="btn btn-sm btn-link text-decoration-none p-0 me-2" @click="openTaskModal(task)">Edit</button>
                                         <button class="btn btn-sm btn-link text-danger text-decoration-none p-0" @click="deleteTask(task.id)">Delete</button>
