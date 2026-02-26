@@ -8,95 +8,81 @@ defineProps({
 
 function buildTypeColor(type) {
     return {
-        Production: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-        RC: 'bg-indigo-50 text-indigo-700 border-indigo-100',
-        Beta: 'bg-blue-50 text-blue-700 border-blue-100',
-        Alpha: 'bg-amber-50 text-amber-700 border-amber-100',
-    }[type] || 'bg-slate-50 text-slate-700 border-slate-100';
+        Production: 'bg-emerald-50 text-emerald-700',
+        RC: 'bg-indigo-50 text-indigo-700',
+        Beta: 'bg-blue-50 text-blue-700',
+        Alpha: 'bg-amber-50 text-amber-700',
+    }[type] || 'bg-slate-50 text-slate-700';
 }
 </script>
 
 <template>
-    <Head title="Projects Archive" />
+    <Head title="App Directory" />
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">App Directory</h2>
-                    <p class="text-slate-500 text-sm font-medium">Browse and manage your registered application packages.</p>
+                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">App Directory</h2>
+                    <p class="text-slate-500 text-xs">Browse and manage registered application packages.</p>
                 </div>
-                <Link :href="route('builds.create')" class="btn-premium-primary">
-                    <i class="bi bi-upload mr-2"></i> Deploy New APK
+                <Link :href="route('builds.create')" class="btn-premium-indigo">
+                    <i class="bi bi-upload mr-2"></i> Deploy APK
                 </Link>
             </div>
         </template>
 
-        <div v-if="projects.length === 0" class="flex flex-col items-center justify-center py-32 text-center">
-            <div class="w-32 h-32 bg-slate-100 rounded-[3rem] flex items-center justify-center mb-6 shadow-inner">
-                <i class="bi bi-box-seam text-6xl text-slate-200"></i>
+        <div v-if="projects.length === 0" class="flex flex-col items-center justify-center py-24 text-center">
+            <div class="w-20 h-20 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center mb-4">
+                <i class="bi bi-box-seam text-3xl text-slate-200"></i>
             </div>
-            <h4 class="text-xl font-black text-slate-800 mb-2">Workspace is Empty</h4>
-            <p class="text-slate-500 max-w-sm mx-auto mb-8 font-medium italic">"Every great application starts with a single build."</p>
-            <Link :href="route('builds.create')" class="btn-premium-primary">Initialize First Project</Link>
+            <h4 class="text-sm font-bold text-slate-800 mb-1">No Projects Found</h4>
+            <p class="text-slate-400 text-xs max-w-sm mx-auto mb-6">Initialize a new project by deploying its first build.</p>
+            <Link :href="route('builds.create')" class="btn-premium-primary">Deploy First Build</Link>
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             <div v-for="project in projects" :key="project.id" class="group">
                 <Link :href="route('projects.show', project.id)" class="block h-full">
-                    <div class="premium-card h-full flex flex-col relative overflow-hidden group-hover:border-indigo-200"
-                         :class="{ 'border-rose-200 bg-rose-50/50': project.pending_feedbacks_count > 0 }">
+                    <div class="premium-card p-6 h-full flex flex-col hover-card"
+                         :class="{ 'border-rose-200': project.pending_feedbacks_count > 0 }">
                         
-                        <!-- High Severity Indicator Ripple -->
-                        <div v-if="project.pending_feedbacks_count > 0" class="absolute top-0 right-0 p-4">
-                            <span class="flex h-3 w-3">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-                            </span>
-                        </div>
-
-                        <div class="p-8 pb-0">
-                            <div class="flex items-start gap-5 mb-6">
-                                <div class="w-16 h-16 rounded-2xl bg-white border border-slate-100 shadow-sm p-2 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
-                                    <img v-if="project.icon_url" :src="'/storage/' + project.icon_url" class="max-w-full max-h-full object-contain" />
-                                    <i v-else class="bi bi-android2 text-3xl text-indigo-200"></i>
-                                </div>
-                                <div class="flex-grow min-w-0">
-                                    <h3 class="text-xl font-black text-slate-900 leading-tight truncate mb-1">{{ project.name }}</h3>
-                                    <p class="text-[10px] font-black text-slate-400 font-mono tracking-tighter uppercase mb-4">{{ project.package_name }}</p>
-                                </div>
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="w-12 h-12 rounded-lg bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center overflow-hidden shrink-0">
+                                <img v-if="project.icon_url" :src="'/storage/' + project.icon_url" class="max-w-full max-h-full object-contain" />
+                                <i v-else class="bi bi-android2 text-2xl text-slate-300"></i>
                             </div>
-
-                            <p class="text-slate-500 text-sm font-medium line-clamp-2 mb-6 min-h-[40px]">{{ project.description || 'No project technical overview provided.' }}</p>
+                            <div class="min-w-0">
+                                <h3 class="text-base font-bold text-slate-900 truncate mb-0.5 group-hover:text-indigo-600 transition-colors">{{ project.name }}</h3>
+                                <p class="text-[10px] font-mono text-slate-400 uppercase truncate">{{ project.package_name }}</p>
+                            </div>
                         </div>
 
-                        <!-- Stats Row -->
-                        <div class="px-8 py-4 bg-slate-50/50 flex items-center gap-4 mt-auto border-t border-slate-100/50">
+                        <p class="text-xs text-slate-500 line-clamp-2 mb-6 min-h-[32px]">{{ project.description || 'No project summary provided.' }}</p>
+
+                        <!-- Stats Strip -->
+                        <div class="mt-auto pt-4 border-t border-slate-50 grid grid-cols-2 gap-4">
                             <div class="flex flex-col">
-                                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Builds</span>
-                                <span class="text-sm font-black text-slate-800">{{ project.builds_count }}</span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Builds</span>
+                                <span class="text-sm font-bold text-slate-700">{{ project.builds_count }}</span>
                             </div>
-                            <div class="w-px h-8 bg-slate-200"></div>
-                            <div class="flex-grow">
+                            <div class="flex flex-col">
                                 <template v-if="project.latest_build">
-                                    <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Latest Stability</span>
-                                    <span class="badge-premium text-[9px]" :class="buildTypeColor(project.latest_build.build_type)">{{ project.latest_build.build_type }} v{{ project.latest_build.version_name }}</span>
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Latest</span>
+                                    <span class="text-[10px] font-bold text-indigo-600">v{{ project.latest_build.version_name }}</span>
                                 </template>
-                                <span v-else class="text-[10px] font-black uppercase text-slate-200 tracking-widest italic">Inventory Empty</span>
+                                <span v-else class="text-[9px] font-bold text-slate-300 uppercase italic">Empty Cache</span>
                             </div>
                         </div>
 
-                        <!-- Warnings Row if any -->
-                        <div v-if="project.pending_feedbacks_count > 0 || project.pending_tasks_count > 0" class="px-8 py-3 bg-white flex gap-3 text-[10px] font-black uppercase tracking-tighter">
+                        <!-- Alerts -->
+                        <div v-if="project.pending_feedbacks_count > 0 || project.pending_tasks_count > 0" class="mt-3 flex gap-4 text-[9px] font-bold uppercase">
                             <span v-if="project.pending_feedbacks_count > 0" class="text-rose-600 flex items-center gap-1">
-                                <i class="bi bi-bug-fill"></i> {{ project.pending_feedbacks_count }} Unresolved
+                                <i class="bi bi-circle-fill text-[4px] animate-pulse"></i> {{ project.pending_feedbacks_count }} Issues
                             </span>
                             <span v-if="project.pending_tasks_count > 0" class="text-amber-600 flex items-center gap-1">
-                                <i class="bi bi-check2-circle"></i> {{ project.pending_tasks_count }} Actions
+                                <i class="bi bi-circle-fill text-[4px]"></i> {{ project.pending_tasks_count }} Tasks
                             </span>
                         </div>
-
-                        <!-- Bottom accent line -->
-                        <div class="h-1 w-full bg-slate-100 group-hover:bg-indigo-600 transition-colors"></div>
                     </div>
                 </Link>
             </div>

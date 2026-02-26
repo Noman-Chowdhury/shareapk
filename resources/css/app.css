@@ -13,31 +13,39 @@
 
 @layer components {
     .premium-card {
-        @apply bg-white border border-slate-200/60 shadow-sm rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1;
+        @apply bg-white border border-slate-200 shadow-sm rounded-xl transition-all duration-200;
+    }
+
+    .hover-card:hover {
+        @apply shadow-md border-slate-300 -translate-y-0.5;
     }
 
     .glass-morphism {
-        @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg;
+        @apply bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm;
     }
 
     .btn-premium {
-        @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+        @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none text-sm;
     }
 
     .btn-premium-primary {
-        @apply btn-premium bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300;
+        @apply btn-premium bg-slate-900 text-white hover:bg-slate-800 shadow-sm;
     }
 
     .btn-premium-secondary {
-        @apply btn-premium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300;
+        @apply btn-premium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm;
+    }
+
+    .btn-premium-indigo {
+        @apply btn-premium bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm;
     }
 
     .badge-premium {
-        @apply inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider;
+        @apply inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider;
     }
 
     .input-premium {
-        @apply w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none bg-slate-50/50;
+        @apply w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/5 transition-all outline-none bg-white text-sm;
     }
 
     .shimmer {
