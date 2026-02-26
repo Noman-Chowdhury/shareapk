@@ -13,58 +13,73 @@
 
 @layer components {
     .premium-card {
-        @apply bg-white border border-slate-200 shadow-sm rounded-xl transition-all duration-200;
+        @apply bg-white border border-slate-200/80 shadow-sm rounded-xl transition-all duration-300;
     }
 
     .hover-card:hover {
-        @apply shadow-md border-slate-300 -translate-y-0.5;
+        @apply shadow-lg shadow-slate-200/50 -translate-y-1 border-slate-300;
     }
 
     .glass-morphism {
-        @apply bg-white/80 backdrop-blur-md border border-slate-200 shadow-sm;
+        @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
     }
 
     .btn-premium {
-        @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none text-sm;
+        @apply inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-bold transition-all duration-300 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none text-sm tracking-tight;
     }
 
     .btn-premium-primary {
-        @apply btn-premium bg-slate-900 text-white hover:bg-slate-800 shadow-sm;
+        @apply btn-premium bg-[#1e293b] text-white hover:bg-[#0f172a] shadow-md shadow-slate-200;
+    }
+
+    .btn-premium-indigo {
+        @apply btn-premium bg-[#4f46e5] text-white hover:bg-[#4338ca] shadow-md shadow-indigo-100;
+    }
+
+    .btn-premium-matte {
+        @apply btn-premium bg-[#64748b] text-white hover:bg-[#475569] shadow-md shadow-slate-100;
     }
 
     .btn-premium-secondary {
         @apply btn-premium bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm;
     }
 
-    .btn-premium-indigo {
-        @apply btn-premium bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm;
-    }
-
     .badge-premium {
-        @apply inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider;
+        @apply inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest;
     }
 
     .input-premium {
-        @apply w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/5 transition-all outline-none bg-white text-sm;
+        @apply w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none bg-slate-50/30 text-sm;
     }
 
-    .shimmer {
-        @apply relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
+    .matte-surface {
+        @apply bg-slate-50 border border-slate-200/60 shadow-inner;
     }
 }
 
-/* Custom animations */
-.animate-in {
-    animation-duration: 0.3s;
-    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* Enhanced Motion System */
+.animate-slide-up {
+    animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.fade-in {
-    animation-name: fade-in;
+.animate-fade-in {
+    animation: fade-in 0.4s ease-out forwards;
 }
 
-.zoom-in {
-    animation-name: zoom-in;
+.animate-scale-in {
+    animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes slide-up {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes fade-in {
@@ -77,7 +92,7 @@
     }
 }
 
-@keyframes zoom-in {
+@keyframes scale-in {
     from {
         transform: scale(0.95);
         opacity: 0;

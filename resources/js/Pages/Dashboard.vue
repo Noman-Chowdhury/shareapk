@@ -14,121 +14,116 @@ defineProps({
 });
 
 function formatDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString(undefined, {
-        month: 'short',
-        day: 'numeric',
-    });
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString();
 }
 </script>
 
 <template>
-    <Head title="Dashboard" />
+    <Head title="Command Center" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-slate-900 tracking-tight">System Dashboard</h2>
-                    <p class="text-slate-500 text-xs">Overview of current application distribution and quality metrics.</p>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Command Center</h2>
+                    <p class="text-slate-500 text-xs font-medium">Synchronizing distributed APK assets and quality protocols.</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <Link :href="route('builds.create')" class="btn-premium-indigo">
-                        <i class="bi bi-plus-lg mr-2"></i> Deploy Build
+                <div class="flex items-center gap-3">
+                    <Link :href="route('builds.create')" class="btn-premium-indigo px-6">
+                        <i class="bi bi-cloud-arrow-up mr-2"></i> Deploy New Build
                     </Link>
                 </div>
             </div>
         </template>
 
-        <!-- Metrics Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="premium-card p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Builds</span>
-                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                        <i class="bi bi-box-seam"></i>
+        <!-- Dynamic Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="premium-card p-6 border-b-4 border-indigo-500 animate-slide-up" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-box-seam text-xl"></i>
                     </div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registries</span>
                 </div>
-                <div class="flex items-baseline gap-2">
-                    <h3 class="text-2xl font-bold text-slate-900 tabular-nums">{{ totalBuilds }}</h3>
-                    <span class="text-[10px] text-emerald-600 font-bold">+12%</span>
-                </div>
+                <h3 class="text-3xl font-black text-slate-800 tabular-nums">{{ totalBuilds }}</h3>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mt-1">Total Deployments</p>
             </div>
 
-            <div class="premium-card p-5 border-l-4 border-l-rose-500">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Open Issues</span>
-                    <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                        <i class="bi bi-bug"></i>
+            <div class="premium-card p-6 border-b-4 border-rose-500 animate-slide-up" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-bug text-xl"></i>
                     </div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quality</span>
                 </div>
-                <div class="flex items-baseline gap-2">
-                    <h3 class="text-2xl font-bold text-slate-900 tabular-nums">{{ openFeedback }}</h3>
-                    <span class="text-[10px] text-rose-600 font-bold" v-if="openFeedback > 0">Attention Required</span>
-                </div>
+                <h3 class="text-3xl font-black text-slate-800 tabular-nums">{{ openFeedback }}</h3>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mt-1">Pending Alerts</p>
             </div>
 
-            <div class="premium-card p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Tasks</span>
-                    <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <i class="bi bi-check2-circle"></i>
+            <div class="premium-card p-6 border-b-4 border-amber-500 animate-slide-up" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-activity text-xl"></i>
                     </div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Operations</span>
                 </div>
-                <div class="flex items-baseline gap-2">
-                    <h3 class="text-2xl font-bold text-slate-900 tabular-nums">{{ myTasksCount }}</h3>
-                    <span class="text-[10px] text-slate-400 font-medium">Assigned to you</span>
-                </div>
+                <h3 class="text-3xl font-black text-slate-800 tabular-nums">{{ myTasksCount }}</h3>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mt-1">Active Assignments</p>
             </div>
 
-            <div class="premium-card p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Downloads</span>
-                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <i class="bi bi-download"></i>
+            <div class="premium-card p-6 border-b-4 border-emerald-500 animate-slide-up" style="animation-delay: 0.4s">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-cloud-download text-xl"></i>
                     </div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transfer</span>
                 </div>
-                <div class="flex items-baseline gap-2">
-                    <h3 class="text-2xl font-bold text-slate-900 tabular-nums">{{ downloads }}</h3>
-                    <span class="text-[10px] text-emerald-600 font-bold">Live Traffic</span>
-                </div>
+                <h3 class="text-3xl font-black text-slate-800 tabular-nums">{{ downloads }}</h3>
+                <p class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mt-1">Success Echoes</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-            <!-- Recent Deployments -->
-            <div class="xl:col-span-8 space-y-6">
-                <div class="premium-card overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Recent Deployments</h3>
-                        <Link :href="route('projects.index')" class="text-[10px] font-bold text-indigo-600 hover:underline">View All Projects</Link>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+            <!-- Deployment Stream -->
+            <div class="xl:col-span-8 space-y-8">
+                <div class="premium-card overflow-hidden animate-slide-up" style="animation-delay: 0.5s">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-widest">Deployment Intelligence</h3>
+                        <Link :href="route('projects.index')" class="text-[10px] font-black text-indigo-600 hover:underline uppercase tracking-widest">Protocol Index</Link>
                     </div>
                     
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead>
-                                <tr class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                                    <th class="px-5 py-3">Project</th>
-                                    <th class="px-5 py-3">Version</th>
-                                    <th class="px-5 py-3">Stability</th>
-                                    <th class="px-5 py-3">Date</th>
-                                    <th class="px-5 py-3 text-right">Actions</th>
+                                <tr class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] border-b border-slate-50">
+                                    <th class="px-6 py-4">Identification</th>
+                                    <th class="px-6 py-4">Release Path</th>
+                                    <th class="px-6 py-4 text-center">Stability</th>
+                                    <th class="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                <tr v-for="build in recentBuilds" :key="build.id" class="group hover:bg-slate-50/50 transition-colors">
-                                    <td class="px-5 py-3">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded bg-white border border-slate-200 flex items-center justify-center p-1 shrink-0">
+                                <tr v-for="build in recentBuilds" :key="build.id" class="group hover:bg-[#f1f5f9]/50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                                 <img v-if="build.project?.icon_url" :src="'/storage/' + build.project.icon_url" class="max-w-full max-h-full object-contain" />
-                                                <i v-else class="bi bi-android2 text-slate-300"></i>
+                                                <i v-else class="bi bi-android2 text-slate-300 text-xl"></i>
                                             </div>
-                                            <span class="text-xs font-bold text-slate-900 truncate max-w-[150px]">{{ build.project?.name }}</span>
+                                            <div class="min-w-0">
+                                                <span class="text-sm font-bold text-slate-800 block truncate">{{ build.project?.name }}</span>
+                                                <span class="text-[10px] font-mono text-slate-400 uppercase tracking-tighter">REF: {{ build.version_name }}</span>
+                                            </div>
                                         </div>
                                     </td>
-                                    <td class="px-5 py-3">
-                                        <span class="text-xs font-mono text-slate-500">{{ build.version_name }}</span>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-bold text-slate-600">v{{ build.version_name }}</span>
+                                            <span class="text-[10px] text-slate-400">{{ formatDate(build.created_at) }}</span>
+                                        </div>
                                     </td>
-                                    <td class="px-5 py-3">
+                                    <td class="px-6 py-4 text-center">
                                         <span class="badge-premium" :class="{
                                             'bg-emerald-50 text-emerald-700': build.build_type === 'Production',
                                             'bg-indigo-50 text-indigo-700': build.build_type === 'RC',
@@ -136,94 +131,97 @@ function formatDate(dateStr) {
                                             'bg-amber-50 text-amber-700': build.build_type === 'Alpha',
                                         }">{{ build.build_type }}</span>
                                     </td>
-                                    <td class="px-5 py-3 text-xs text-slate-500">
-                                        {{ formatDate(build.created_at) }}
-                                    </td>
-                                    <td class="px-5 py-3 text-right">
-                                        <Link :href="route('builds.show', build.id)" class="text-indigo-600 hover:text-indigo-800 text-xs font-bold">Details</Link>
+                                    <td class="px-6 py-4 text-right">
+                                        <Link :href="route('builds.show', build.id)" class="btn-premium-matte py-1 text-[10px] px-3">Inspect</Link>
                                     </td>
                                 </tr>
                                 <tr v-if="!recentBuilds?.length">
-                                    <td colspan="5" class="py-10 text-center text-slate-400 italic text-xs">No recent activity detected.</td>
+                                    <td colspan="4" class="px-6 py-12 text-center text-slate-400 italic text-xs">No synchronization data available.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- My Tasks -->
-                    <div class="premium-card overflow-hidden">
-                        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Assignments</h3>
-                            <i class="bi bi-list-task text-slate-300"></i>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Action Items -->
+                    <div class="premium-card overflow-hidden animate-slide-up" style="animation-delay: 0.6s">
+                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                            <h3 class="text-[10px] font-black uppercase tracking-widest text-indigo-400">Operational Stack</h3>
+                            <i class="bi bi-stack text-slate-500"></i>
                         </div>
-                        <div class="divide-y divide-slate-50 overflow-y-auto max-h-64">
-                            <Link v-for="task in myTasks" :key="task.id" :href="route('tasks.show', task.id)" class="block px-5 py-3 hover:bg-slate-50 transition-colors">
-                                <p class="text-[13px] font-bold text-slate-800 truncate mb-1">{{ task.title }}</p>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] text-slate-400 font-medium">{{ task.build?.project?.name }}</span>
-                                    <span v-if="task.priority === 'Urgent'" class="text-[9px] font-bold text-rose-600 uppercase tracking-tighter">Urgent</span>
+                        <div class="divide-y divide-slate-50 matte-surface h-64 overflow-y-auto">
+                            <Link v-for="task in myTasks" :key="task.id" :href="route('tasks.show', task.id)" class="block px-6 py-4 hover:bg-white transition-colors">
+                                <p class="text-sm font-bold text-slate-800 truncate mb-1">{{ task.title }}</p>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ task.build?.project?.name }}</span>
+                                    <span v-if="task.priority === 'Urgent'" class="text-[9px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">URGENT</span>
                                 </div>
                             </Link>
-                            <div v-if="!myTasks?.length" class="py-10 text-center text-slate-300 italic text-xs">Queue is clear.</div>
+                            <div v-if="!myTasks?.length" class="py-16 text-center text-slate-300 italic text-xs">Queue Clear</div>
                         </div>
                     </div>
 
-                    <!-- My Feedback -->
-                    <div class="premium-card overflow-hidden">
-                        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Observation Feed</h3>
-                            <i class="bi bi-chat-text text-slate-300"></i>
+                    <!-- Observation Data -->
+                    <div class="premium-card overflow-hidden animate-slide-up" style="animation-delay: 0.7s">
+                        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-900 text-white">
+                            <h3 class="text-[10px] font-black uppercase tracking-widest text-rose-400">Quality Echo</h3>
+                            <i class="bi bi-shield-radar text-slate-500"></i>
                         </div>
-                        <div class="divide-y divide-slate-50 overflow-y-auto max-h-64">
-                            <Link v-for="fb in myFeedback" :key="fb.id" :href="route('feedback.show', fb.id)" class="block px-5 py-3 hover:bg-slate-50 transition-colors">
-                                <p class="text-[13px] font-bold text-slate-800 truncate mb-1">{{ fb.title }}</p>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 uppercase">{{ fb.type }}</span>
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 uppercase">{{ fb.status }}</span>
+                        <div class="divide-y divide-slate-50 matte-surface h-64 overflow-y-auto">
+                            <Link v-for="fb in myFeedback" :key="fb.id" :href="route('feedback.show', fb.id)" class="block px-6 py-4 hover:bg-white transition-colors">
+                                <p class="text-sm font-bold text-slate-800 truncate mb-1">{{ fb.title }}</p>
+                                <div class="flex gap-2">
+                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 uppercase">{{ fb.type }}</span>
+                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-600 uppercase">{{ fb.status }}</span>
                                 </div>
                             </Link>
-                            <div v-if="!myFeedback?.length" class="py-10 text-center text-slate-300 italic text-xs">No pending feedback.</div>
+                            <div v-if="!myFeedback?.length" class="py-16 text-center text-slate-300 italic text-xs">No Observations</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Activity / Global Stream -->
-            <div class="xl:col-span-4 space-y-6">
+            <!-- Activity Stream -->
+            <div class="xl:col-span-4 space-y-8 animate-slide-up" style="animation-delay: 0.8s">
                 <div class="premium-card overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-                        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">System Activity</h3>
+                    <div class="px-6 py-4 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white flex items-center justify-between">
+                        <h3 class="text-xs font-black uppercase tracking-widest">Protocol Signal</h3>
+                        <i class="bi bi-lightning-charge animate-pulse"></i>
                     </div>
-                    <div class="p-5 space-y-4 overflow-y-auto max-h-[600px]">
+                    <div class="p-6 space-y-6 max-h-[600px] overflow-y-auto matte-surface">
                         <template v-if="recentActivity?.length">
-                            <div v-for="activity in recentActivity" :key="activity.id" class="flex gap-4 pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+                            <div v-for="activity in recentActivity" :key="activity.id" class="flex gap-4 group">
                                 <div class="shrink-0">
-                                    <div class="w-8 h-8 rounded bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                    <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-indigo-500 group-hover:text-white group-hover:border-indigo-500 transition-all">
                                         {{ activity.user?.name.charAt(0) }}
                                     </div>
                                 </div>
                                 <div class="min-w-0">
-                                    <p class="text-xs text-slate-800 mb-1">
+                                    <p class="text-xs text-slate-800 mb-1 leading-snug">
                                         <span class="font-bold">{{ activity.user?.name }}</span>
-                                        <span class="text-slate-500 mx-1">replied to</span>
+                                        <span class="text-slate-400 mx-1">Interacted with</span>
                                         <span class="font-bold text-indigo-600">{{ activity.commentable_type.split('\\').pop() }}</span>
                                     </p>
-                                    <p class="text-[11px] text-slate-500 italic line-clamp-2 mb-2">"{{ activity.body }}"</p>
-                                    <span class="text-[9px] text-slate-400 font-medium uppercase tracking-wider">{{ formatDate(activity.created_at) }}</span>
+                                    <div class="p-3 bg-white rounded-xl border border-slate-100 italic text-[11px] text-slate-500 mb-2 shadow-sm">
+                                        "{{ activity.body }}"
+                                    </div>
+                                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{{ formatDate(activity.created_at) }}</span>
                                 </div>
                             </div>
                         </template>
-                        <div v-else class="py-20 text-center text-slate-300 italic text-xs">No activity stream available.</div>
+                        <div v-else class="py-20 text-center text-slate-400 italic text-xs">Signal Silent</div>
                     </div>
                 </div>
 
-                <!-- Support/Docs Info -->
-                <div class="premium-card p-6 bg-indigo-600 text-white shadow-lg shadow-indigo-100">
-                    <h4 class="text-sm font-bold uppercase tracking-wider mb-2">Knowledge Base</h4>
-                    <p class="text-xs text-indigo-100 mb-4 leading-relaxed">Access documentation for API protocols, distribution rules, and build requirements.</p>
-                    <button class="w-full bg-white text-indigo-600 font-bold py-2 rounded-lg text-xs hover:bg-indigo-50 transition-colors">Documentation</button>
+                <!-- Knowledge Hub -->
+                <div class="premium-card p-8 bg-slate-900 text-white relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <h4 class="text-sm font-black uppercase tracking-widest mb-3">Protocol Archive</h4>
+                        <p class="text-xs text-slate-400 mb-6 leading-relaxed">Deep-dive into deployment schemas, API integration patterns, and quality assurance guidelines.</p>
+                        <button class="w-full btn-premium-indigo py-3 text-xs bg-white text-slate-900 hover:bg-indigo-50">Explore Hub</button>
+                    </div>
+                    <i class="bi bi-hdd-network absolute -bottom-6 -right-6 text-8xl text-indigo-500/10 group-hover:scale-110 transition-transform"></i>
                 </div>
             </div>
         </div>

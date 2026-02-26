@@ -80,102 +80,123 @@ const filteredFeedbacks = computed(() => {
 </script>
 
 <template>
-    <Head title="Quality Assurance" />
+    <Head title="Quality Assurance Echo" />
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-black text-slate-900 tracking-tight">Quality Control</h2>
-                    <p class="text-slate-500 text-xs">Manage reported issues and feedback streams.</p>
+                    <h2 class="text-xl font-black text-slate-800 tracking-tight">Quality Assurance Archive</h2>
+                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Global quality protocol monitoring & trace analytics.</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex items-center gap-3">
                     <div class="relative">
                         <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input v-model="searchQuery" type="text" class="input-premium py-1.5 pl-9 w-48 text-xs bg-white" placeholder="Search..." />
+                        <input v-model="searchQuery" type="text" class="input-premium py-2 pl-9 w-56 text-xs bg-white" placeholder="Registry Search..." />
                     </div>
-                    <select v-model="statusFilter" class="input-premium py-1.5 px-3 text-xs bg-white font-bold text-slate-600 w-32 border-slate-200">
-                        <option>All</option>
+                    <select v-model="statusFilter" class="input-premium py-2 px-4 text-xs bg-white font-black text-slate-600 w-36 border-slate-200 uppercase tracking-tighter">
+                        <option>All Signals</option>
                         <option>Open</option>
                         <option>In Progress</option>
                         <option>Resolved</option>
-                        <option>Closed</option>
                     </select>
                 </div>
             </div>
         </template>
 
-        <div class="premium-card overflow-hidden">
+        <div class="premium-card overflow-hidden animate-slide-up">
              <table class="w-full text-left">
                 <thead class="bg-slate-50 border-b border-slate-100">
-                    <tr class="text-[10px] font-bold uppercase text-slate-400 tracking-widest">
-                        <th class="px-6 py-3">Issue / Context</th>
-                        <th class="px-6 py-3 text-center">Status</th>
-                        <th class="px-6 py-3">Severity</th>
-                        <th class="px-6 py-3">Assignee</th>
-                        <th class="px-6 py-3 text-right">Action</th>
+                    <tr class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">
+                        <th class="px-8 py-4">Signal Identification</th>
+                        <th class="px-8 py-4 text-center">Protocol Status</th>
+                        <th class="px-8 py-4">Severity Tier</th>
+                        <th class="px-8 py-4">Assigned Agent</th>
+                        <th class="px-8 py-4 text-right">Context</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 text-xs">
-                    <tr v-for="fb in filteredFeedbacks" :key="fb.id" class="group hover:bg-slate-50/30 transition-colors">
-                        <td class="px-6 py-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded bg-white border border-slate-200 flex items-center justify-center p-1 shrink-0">
+                    <tr v-for="fb in filteredFeedbacks" :key="fb.id" class="group hover:bg-[#f8fafc] transition-colors">
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-1.5 shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                                     <img v-if="fb.build?.project?.icon_url" :src="'/storage/' + fb.build.project.icon_url" class="max-w-full max-h-full object-contain" />
-                                    <i v-else class="bi bi-bug text-slate-300"></i>
+                                    <i v-else class="bi bi-bug text-slate-300 text-lg"></i>
                                 </div>
                                 <div class="min-w-0">
-                                    <Link :href="route('feedback.show', fb.id)" class="font-bold text-slate-900 group-hover:text-indigo-600 truncate block">{{ fb.title }}</Link>
-                                    <span v-if="fb.build" class="text-[10px] text-slate-400 font-medium truncate block">{{ fb.build.project?.name }} v{{ fb.build.version_name }}</span>
+                                    <Link :href="route('feedback.show', fb.id)" class="text-sm font-bold text-slate-800 group-hover:text-indigo-600 truncate block transition-colors leading-snug">{{ fb.title }}</Link>
+                                    <span v-if="fb.build" class="text-[10px] text-slate-400 font-black uppercase tracking-tighter opacity-70">{{ fb.build.project?.name }} v{{ fb.build.version_name }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-3 text-center">
-                            <span class="text-[10px] font-bold uppercase tracking-wider" :class="statusColor(fb.status)">{{ fb.status }}</span>
+                        <td class="px-8 py-5 text-center">
+                            <span class="text-[10px] font-black uppercase tracking-widest" :class="statusColor(fb.status)">{{ fb.status }}</span>
                         </td>
-                        <td class="px-6 py-3">
+                        <td class="px-8 py-5">
                             <span class="badge-premium" :class="severityColor(fb.severity)">{{ fb.severity }}</span>
                         </td>
-                        <td class="px-6 py-3">
-                            <div class="flex items-center gap-2">
-                                <span class="w-5 h-5 bg-slate-100 rounded flex items-center justify-center text-[10px] text-slate-500 font-bold border border-slate-200">{{ fb.assignee?.name.charAt(0) || '?' }}</span>
-                                <span class="font-medium text-slate-600">{{ fb.assignee?.name || 'Unassigned' }}</span>
+                        <td class="px-8 py-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-7 h-7 bg-slate-100 rounded-lg flex items-center justify-center text-[10px] text-slate-500 font-bold border border-slate-200">{{ fb.assignee?.name.charAt(0) || '?' }}</div>
+                                <span class="font-bold text-slate-600">{{ fb.assignee?.name || 'Pool Sync' }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-3 text-right">
-                            <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Link :href="route('feedback.show', fb.id)" class="p-1.5 text-slate-400 hover:text-indigo-600"><i class="bi bi-eye"></i></Link>
-                                <button @click="openModal(fb)" class="p-1.5 text-slate-400 hover:text-indigo-600"><i class="bi bi-pencil-square"></i></button>
-                                <button @click="deleteFeedback(fb.id)" class="p-1.5 text-slate-400 hover:text-rose-500"><i class="bi bi-trash"></i></button>
+                        <td class="px-8 py-5 text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-0 translate-x-4">
+                                <Link :href="route('feedback.show', fb.id)" class="btn-premium-matte py-1.5 px-3 text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white hover:border-indigo-600">Inspect</Link>
+                                <button @click="openModal(fb)" class="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><i class="bi bi-pencil-square"></i></button>
+                                <button @click="deleteFeedback(fb.id)" class="p-2 text-slate-400 hover:text-rose-500 transition-colors"><i class="bi bi-trash"></i></button>
                             </div>
+                        </td>
+                    </tr>
+                    <tr v-if="!filteredFeedbacks.length">
+                        <td colspan="5" class="py-24 text-center">
+                            <i class="bi bi-search text-5xl text-slate-100 block mb-4"></i>
+                            <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Protocol Search Silent. No matching signals.</p>
                         </td>
                     </tr>
                 </tbody>
              </table>
         </div>
 
+        <!-- Global Update Modal -->
         <Transition name="fade">
-            <div v-if="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/10 backdrop-blur-sm">
-                <div class="premium-card max-w-lg w-full p-6 animate-in zoom-in">
-                    <h3 class="text-sm font-bold text-slate-900 mb-4 uppercase tracking-wider">Update Report</h3>
-                    <form @submit.prevent="submitFeedback" class="space-y-3">
-                        <input v-model="feedbackForm.title" class="input-premium font-bold text-sm" placeholder="Title..." required />
-                        <div class="grid grid-cols-2 gap-3">
-                            <select v-model="feedbackForm.severity" class="input-premium text-xs py-1.5 bg-white">
-                                <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
-                            </select>
-                            <select v-model="feedbackForm.status" class="input-premium text-xs py-1.5 bg-white">
-                                <option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
+            <div v-if="isModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#0f172a]/20 backdrop-blur-md">
+                <div class="premium-card max-w-lg w-full p-8 animate-scale-in">
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-[0.2em] mb-6">Internal Protocol Re-Sync</h3>
+                    <form @submit.prevent="submitFeedback" class="space-y-4">
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Signal Identification</label>
+                            <input v-model="feedbackForm.title" class="input-premium font-bold text-sm" placeholder="Title..." required />
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Severity Tier</label>
+                                <select v-model="feedbackForm.severity" class="input-premium text-[11px] font-bold bg-white">
+                                    <option>Critical</option><option>High</option><option>Medium</option><option>Low</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Registry Status</label>
+                                <select v-model="feedbackForm.status" class="input-premium text-[11px] font-bold bg-white">
+                                    <option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Assigned Agent</label>
+                            <select v-model="feedbackForm.assignee_id" class="input-premium text-[11px] font-bold bg-white">
+                                <option value="">Pool Sync</option>
+                                <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
                             </select>
                         </div>
-                        <select v-model="feedbackForm.assignee_id" class="input-premium text-xs py-1.5 bg-white">
-                            <option value="">No Assignee</option>
-                            <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-                        </select>
-                        <textarea v-model="feedbackForm.description" class="input-premium text-xs min-h-[100px]" placeholder="Summary..." required></textarea>
+                        <div class="space-y-1">
+                            <label class="text-[9px] font-black uppercase text-slate-400 tracking-widest">Protocol Trace Summary</label>
+                            <textarea v-model="feedbackForm.description" class="input-premium text-xs min-h-[120px]" placeholder="Summary..." required></textarea>
+                        </div>
                         
-                        <div class="flex gap-2 pt-2">
-                            <button type="button" @click="closeModal" class="btn-premium-secondary py-1.5 text-xs">Cancel</button>
-                            <button type="submit" class="btn-premium-indigo py-1.5 text-xs flex-grow">Update Record</button>
+                        <div class="flex gap-3 pt-6">
+                            <button type="button" @click="closeModal" class="flex-grow btn-premium-secondary text-[10px]">Abort</button>
+                            <button type="submit" class="flex-[3] btn-premium-indigo text-[10px]">Initialize Protocol Update</button>
                         </div>
                     </form>
                 </div>
