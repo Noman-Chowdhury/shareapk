@@ -31,131 +31,94 @@ class BuildController extends Controller
     }
 
     /**
+     * High-speed metadata extraction using direct aapt calls
+     */
+    private function extractMetadata($fullPath)
+    {
+        $aaptPath = '/usr/bin/aapt';
+        $cmd = "$aaptPath dump badging " . escapeshellarg($fullPath) . " 2>&1 | grep -E 'package:|application-label|application-icon|application: label='";
+        $output = shell_exec($cmd);
+
+        if (!$output) {
+            return ['success' => false, 'message' => 'Failed to analyze APK. Ensure aapt is installed.'];
+        }
+
+        $res = ['success' => true, 'package_name' => '', 'version_code' => '', 'version_name' => '', 'app_name' => '', 'icon_data' => '', 'icon_path' => ''];
+
+        if (preg_match("/package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'/", $output, $matches)) {
+            $res['package_name'] = $matches[1];
+            $res['version_code'] = $matches[2];
+            $res['version_name'] = $matches[3];
+        }
+
+        if (preg_match_all("/application-label(?:-[a-z-_]+)?:\s*['\"]([^'\"]+)['\"]/i", $output, $matches)) {
+            foreach ($matches[0] as $i => $fullLine) {
+                if (!str_contains($fullLine, '-')) {
+                    $res['app_name'] = $matches[1][$i];
+                    break;
+                }
+            }
+            if (!$res['app_name']) $res['app_name'] = $matches[1][0];
+        }
+        
+        if (!$res['app_name'] && preg_match("/application: label=['\"]([^'\"]+)['\"]/i", $output, $matches)) {
+            $res['app_name'] = $matches[1];
+        }
+
+        $bestIcon = null; $maxSize = 0;
+        if (preg_match_all("/application-icon-(\d+):\s*['\"]([^'\"]+)['\"]/i", $output, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $size = (int)$match[1];
+                if ($size >= $maxSize) { $maxSize = $size; $bestIcon = $match[2]; }
+            }
+        }
+        if (!$bestIcon && preg_match("/icon=['\"]([^'\"]+)['\"]/i", $output, $matches)) {
+            $bestIcon = $matches[1];
+        }
+
+        if ($bestIcon) {
+            $res['icon_path'] = $bestIcon;
+            $ext = pathinfo($bestIcon, PATHINFO_EXTENSION);
+            $tempIcon = storage_path('app/public/temp/pre_' . time() . '.' . $ext);
+            shell_exec("/usr/bin/unzip -p " . escapeshellarg($fullPath) . " " . escapeshellarg($bestIcon) . " > " . escapeshellarg($tempIcon));
+            
+            if (file_exists($tempIcon) && filesize($tempIcon) > 0) {
+                $mime = (strtolower($ext) == 'webp') ? 'image/webp' : 'image/png';
+                $res['icon_data'] = 'data:'.$mime.';base64,' . base64_encode(file_get_contents($tempIcon));
+                @unlink($tempIcon);
+            }
+        }
+
+        if (!$res['app_name'] && $res['package_name']) {
+            $segments = explode('.', $res['package_name']);
+            $res['app_name'] = ucwords(str_replace('_', ' ', end($segments)));
+        }
+
+        return $res;
+    }
+
+    /**
      * Pre-analyze APK and return metadata.
      */
     public function preAnalyze(Request $request)
     {
-        $request->validate([
-            'apk_file' => 'required|file|max:512000',
-        ]);
+        $request->validate(['apk_file' => 'required|file|max:512000']);
 
         $file = $request->file('apk_file');
-        
-        // Use a persistent temporary path
         $tempPath = $file->store('temp', 'public');
         $fullPath = storage_path('app/public/' . $tempPath);
 
-        try {
-            $apk = new ApkParser($fullPath, ['tmp_path' => storage_path('app/apk_temp')]);
-            $manifest = $apk->getManifest();
-            
-            $packageName = $manifest->getPackageName();
-            $versionCode = $manifest->getVersionCode();
-            $versionName = $manifest->getVersionName();
-            
-            // App Name / Icon extraction using aapt (Full output parsing)
-            $aaptPath = '/usr/bin/aapt';
-            $aaptOutput = shell_exec("$aaptPath dump badging " . escapeshellarg($fullPath) . " 2>&1");
-            
-            $appName = null;
-            $iconPath = null;
-            $iconData = null;
+        $data = $this->extractMetadata($fullPath);
 
-            // App Name / Icon extraction using aapt (Full output parsing)
-            $aaptPath = '/usr/bin/aapt';
-            \Log::info("Analyzing APK at: " . $fullPath);
-            $aaptOutput = shell_exec("$aaptPath dump badging " . escapeshellarg($fullPath) . " 2>&1");
-            \Log::info("AAPT Output length: " . strlen((string)$aaptOutput));
-            
-            if ($aaptOutput) {
-                // Clean output from any weird null bytes or non-printable chars
-                $cleanOutput = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $aaptOutput);
-                file_put_contents(storage_path('app/aapt_debug.txt'), "FULL PATH: $fullPath\n\n" . $cleanOutput);
-
-                // 1. App Name - Extract all labels (Relaxed regex)
-                if (preg_match_all("/application-label(?:-[a-z-_]+)?:\s*['\"](.*?)['\"]/i", $cleanOutput, $matches)) {
-                    foreach ($matches[0] as $i => $fullLine) {
-                        if (!str_contains($fullLine, '-')) {
-                            $appName = $matches[1][$i];
-                            break;
-                        }
-                    }
-                    if (!$appName && !empty($matches[1])) $appName = $matches[1][0];
-                }
-                
-                // 2. Icon Path - Extract all icons
-                $currentBestSize = 0;
-                $tempIconPath = null;
-                if (preg_match_all("/application-icon-(\d+):\s*['\"](.*?)['\"]/i", $cleanOutput, $matches, PREG_SET_ORDER)) {
-                    foreach ($matches as $match) {
-                        $size = (int)$match[1];
-                        $path = $match[2];
-                        $pathLower = strtolower($path);
-                        if ($size >= $currentBestSize && (str_ends_with($pathLower, '.png') || str_ends_with($pathLower, '.webp'))) {
-                            $currentBestSize = $size;
-                            $tempIconPath = $path;
-                        }
-                    }
-                }
-
-                // Final fallback if still empty
-                if (!$appName && preg_match("/label=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
-                    $appName = $matches[1];
-                }
-                if (!$tempIconPath && preg_match("/icon=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
-                    $tempIconPath = $matches[1];
-                }
-
-                \Log::info("Parsed Result - Name: $appName | Icon: $tempIconPath");
-
-                // Extract Icon if found
-                if ($tempIconPath) {
-                    $ext = pathinfo($tempIconPath, PATHINFO_EXTENSION);
-                    $tempIcon = storage_path('app/public/temp/icon_' . time() . '.' . $ext);
-                    $unzipPath = '/usr/bin/unzip';
-                    
-                    shell_exec("$unzipPath -p " . escapeshellarg($fullPath) . " " . escapeshellarg($tempIconPath) . " > " . escapeshellarg($tempIcon));
-                    
-                    if (file_exists($tempIcon) && filesize($tempIcon) > 0) {
-                        $mimeType = (strtolower($ext) === 'webp') ? 'image/webp' : 'image/png';
-                        $iconData = 'data:'.$mimeType.';base64,' . base64_encode(file_get_contents($tempIcon));
-                        @unlink($tempIcon);
-                    }
-                }
-            }
-
-            // Fallbacks for App Name
-            if (!$appName) {
-                try {
-                    $parsedLabel = $manifest->getApplication()->getLabel();
-                    if ($parsedLabel && !str_starts_with($parsedLabel, '0x')) $appName = $parsedLabel;
-                } catch (\Exception $e) {}
-            }
-
-            if (!$appName) {
-                $segments = explode('.', $packageName);
-                $appName = ucwords(str_replace('_', ' ', end($segments)));
-            }
-
-            return response()->json([
-                'success'      => true,
-                'package_name' => $packageName,
-                'version_code' => $versionCode,
-                'version_name' => $versionName,
-                'app_name'     => $appName,
-                'icon_data'    => $iconData,
-                'temp_path'    => $tempPath,
-                'file_size'    => $file->getSize(),
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error("PreAnalyze Error: " . $e->getMessage());
+        if (!$data['success']) {
             @unlink($fullPath);
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to parse APK: ' . $e->getMessage()
-            ], 422);
+            return response()->json(['success' => false, 'message' => $data['message']], 422);
         }
+
+        return response()->json(array_merge($data, [
+            'temp_path' => $tempPath,
+            'file_size' => $file->getSize(),
+        ]));
     }
 
     public function store(Request $request)
@@ -199,111 +162,55 @@ class BuildController extends Controller
         $fullPath = storage_path('app/public/' . $finalPath);
 
         try {
-            // Parse APK
-            $apk = new ApkParser($fullPath, ['tmp_path' => storage_path('app/apk_temp')]);
-            $manifest = $apk->getManifest();
-            
-            $packageName = $manifest->getPackageName();
-            $versionCode = $manifest->getVersionCode();
-            $versionName = $manifest->getVersionName();
-            
-            // App Name / Icon extraction using aapt (Full output parsing)
-            $aaptPath = '/usr/bin/aapt';
-            $aaptOutput = shell_exec("$aaptPath dump badging " . escapeshellarg($fullPath) . " 2>&1");
-            
-            $appName = null;
-            $iconPath = null;
+            $data = $this->extractMetadata($fullPath);
+            if (!$data['success']) {
+                throw new \Exception($data['message']);
+            }
 
-            if ($aaptOutput) {
-                // Same robust parsing as preAnalyze
-                $cleanOutput = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $aaptOutput);
+            // Final Metadata
+            $packageName = $data['package_name'];
+            $versionCode = $data['version_code'];
+            $versionName = $data['version_name'];
+            $appName = $data['app_name'];
+            $iconInternalPath = $data['icon_path'];
 
-                if (preg_match_all("/application-label(?:-[a-z-_]+)?:\s*['\"](.*?)['\"]/i", $cleanOutput, $matches)) {
-                    foreach ($matches[0] as $i => $fullLine) {
-                        if (!str_contains($fullLine, '-')) {
-                            $appName = $matches[1][$i];
-                            break;
-                        }
-                    }
-                    if (!$appName && !empty($matches[1])) $appName = $matches[1][0];
+            $project = Project::where('package_name', $packageName)->first();
+            $iconUrl = $project ? $project->icon_url : null;
+
+            if ($iconInternalPath) {
+                $ext = pathinfo($iconInternalPath, PATHINFO_EXTENSION);
+                $iconFilename = 'project_' . time() . '_' . Str::random(5) . '.' . $ext;
+                $iconLocalPath = storage_path('app/public/icons/' . $iconFilename);
+                
+                if (!file_exists(storage_path('app/public/icons'))) {
+                    mkdir(storage_path('app/public/icons'), 0755, true);
                 }
                 
-                $currentBestSize = 0;
-                $tempIconPath = null;
-                if (preg_match_all("/application-icon-(\d+):\s*['\"](.*?)['\"]/i", $cleanOutput, $matches, PREG_SET_ORDER)) {
-                    foreach ($matches as $match) {
-                        $size = (int)$match[1];
-                        $path = $match[2];
-                        $pathLower = strtolower($path);
-                        if ($size >= $currentBestSize && (str_ends_with($pathLower, '.png') || str_ends_with($pathLower, '.webp'))) {
-                            $currentBestSize = $size;
-                            $tempIconPath = $path;
-                        }
-                    }
-                }
-
-                if (!$appName && preg_match("/label=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
-                    $appName = $matches[1];
-                }
-                if (!$tempIconPath && preg_match("/icon=['\"]([^'\"]+)['\"]/i", $cleanOutput, $matches)) {
-                    $tempIconPath = $matches[1];
-                }
-
-                // Extract Icon for Project
-                if ($tempIconPath) {
-                    $ext = pathinfo($tempIconPath, PATHINFO_EXTENSION);
-                    $iconFilename = 'project_' . time() . '_' . Str::random(5) . '.' . $ext;
-                    $iconLocalPath = storage_path('app/public/icons/' . $iconFilename);
-                    
-                    if (!file_exists(storage_path('app/public/icons'))) {
-                        mkdir(storage_path('app/public/icons'), 0755, true);
-                    }
-                    
-                    $unzipPath = '/usr/bin/unzip';
-                    shell_exec("$unzipPath -p " . escapeshellarg($fullPath) . " " . escapeshellarg($tempIconPath) . " > " . escapeshellarg($iconLocalPath));
-                    
-                    if (file_exists($iconLocalPath) && filesize($iconLocalPath) > 0) {
-                        $iconPath = 'icons/' . $iconFilename;
-                    }
+                shell_exec("/usr/bin/unzip -p " . escapeshellarg($fullPath) . " " . escapeshellarg($iconInternalPath) . " > " . escapeshellarg($iconLocalPath));
+                
+                if (file_exists($iconLocalPath) && filesize($iconLocalPath) > 0) {
+                    $iconUrl = 'icons/' . $iconFilename;
                 }
             }
 
-            // Fallbacks
-            if (!$appName) {
-                try {
-                    $parsedLabel = $manifest->getApplication()->getLabel();
-                    if ($parsedLabel && !str_starts_with($parsedLabel, '0x')) $appName = $parsedLabel;
-                } catch (\Exception $e) {}
-            }
-
-            if (!$appName) {
-                $segments = explode('.', $packageName);
-                $appName = ucwords(str_replace('_', ' ', end($segments)));
-            }
-
-            // Automate Project Creation or Update (Fix: Update existing records if we have a better name/icon)
-            $project = Project::where('package_name', $packageName)->first();
-            
             if (!$project) {
                 $project = Project::create([
                     'package_name' => $packageName,
-                    'name' => $appName ?? $packageName,
-                    'icon_url' => $iconPath
+                    'name' => $appName ?: $packageName,
+                    'icon_url' => $iconUrl
                 ]);
             } else {
                 $updateData = [];
-                // Update Name if it's currently generic (like just the package name or 'Admin')
                 if ($appName && ($project->name === $packageName || $project->name === 'Admin' || $project->name === 'admin')) {
                     $updateData['name'] = $appName;
                 }
-                if ($iconPath) {
-                    $updateData['icon_url'] = $iconPath;
+                if ($iconUrl) {
+                    $updateData['icon_url'] = $iconUrl;
                 }
                 if (!empty($updateData)) {
                     $project->update($updateData);
                 }
             }
-
 
             // Create Build Entry
             $build = Build::create([
@@ -319,13 +226,10 @@ class BuildController extends Controller
             ]);
 
             ActivityLog::log('Build Uploaded', "Uploaded v{$versionName} for project {$project->name}", $build);
-
-            return redirect()->route('builds.show', $build->id)->with('success', 'APK Uploaded Successfully! Version: ' . $versionName);
+            return redirect()->route('builds.show', $build->id)->with('success', 'APK Uploaded Successfully!');
 
         } catch (\Exception $e) {
-            if ($finalPath) {
-                Storage::disk('public')->delete($finalPath);
-            }
+            if ($finalPath) Storage::disk('public')->delete($finalPath);
             return back()->withErrors(['apk_file' => 'Failed to parse APK: ' . $e->getMessage()]);
         }
     }
