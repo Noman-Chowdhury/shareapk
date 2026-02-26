@@ -1,9 +1,5 @@
 <script setup>
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
@@ -22,91 +18,112 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Register" />
+        <Head title="Establish Identity • Antigravity" />
 
-        <form @submit.prevent="submit">
+        <form @submit.prevent="submit" class="space-y-6">
+            <div class="space-y-2 text-center mb-8">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Establish Identity</h2>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Register new operator in the cloud registry.</p>
+            </div>
+
+            <!-- Name -->
             <div>
-                <InputLabel for="name" value="Name" />
-
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
-
-                <InputError class="mt-2" :message="form.errors.name" />
+                <label for="name" class="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest pl-1">Full Operator Name</label>
+                <div class="relative group">
+                    <i class="bi bi-person absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500"></i>
+                    <input
+                        id="name"
+                        type="text"
+                        class="input-premium pl-11 py-3.5 text-sm"
+                        :class="{ 'border-rose-300 ring-rose-50': form.errors.name }"
+                        v-model="form.name"
+                        required
+                        autofocus
+                        autocomplete="name"
+                        placeholder="Commander Shepherd"
+                    />
+                </div>
+                <p v-if="form.errors.name" class="mt-1.5 text-[10px] font-black uppercase text-rose-500 tracking-tighter">{{ form.errors.name }}</p>
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autocomplete="username"
-                />
-
-                <InputError class="mt-2" :message="form.errors.email" />
+            <!-- Email -->
+            <div>
+                <label for="email" class="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest pl-1">Registry Email</label>
+                <div class="relative group">
+                    <i class="bi bi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500"></i>
+                    <input
+                        id="email"
+                        type="email"
+                        class="input-premium pl-11 py-3.5 text-sm"
+                        :class="{ 'border-rose-300 ring-rose-50': form.errors.email }"
+                        v-model="form.email"
+                        required
+                        autocomplete="username"
+                        placeholder="operator@antigravity.dev"
+                    />
+                </div>
+                <p v-if="form.errors.email" class="mt-1.5 text-[10px] font-black uppercase text-rose-500 tracking-tighter">{{ form.errors.email }}</p>
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
+            <!-- Password -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="password" class="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest pl-1">Access Key</label>
+                    <div class="relative group">
+                        <i class="bi bi-shield-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500"></i>
+                        <input
+                            id="password"
+                            type="password"
+                            class="input-premium pl-11 py-3.5 text-sm"
+                            :class="{ 'border-rose-300 ring-rose-50': form.errors.password }"
+                            v-model="form.password"
+                            required
+                            autocomplete="new-password"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label for="password_confirmation" class="block text-[10px] font-black uppercase text-slate-400 mb-1.5 tracking-widest pl-1">Confirm Key</label>
+                    <div class="relative group">
+                        <i class="bi bi-shield-check absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-indigo-500"></i>
+                        <input
+                            id="password_confirmation"
+                            type="password"
+                            class="input-premium pl-11 py-3.5 text-sm"
+                            v-model="form.password_confirmation"
+                            required
+                            autocomplete="new-password"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                </div>
+                <p v-if="form.errors.password" class="sm:col-span-2 mt-1.5 text-[10px] font-black uppercase text-rose-500 tracking-tighter">{{ form.errors.password }}</p>
             </div>
 
-            <div class="mt-4">
-                <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
-                />
-
-                <TextInput
-                    id="password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password_confirmation"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError
-                    class="mt-2"
-                    :message="form.errors.password_confirmation"
-                />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    :href="route('login')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Already registered?
-                </Link>
-
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
+            <!-- Action Core -->
+            <div class="pt-4 flex flex-col gap-4">
+                <button
+                    type="submit"
+                    class="w-full btn-premium-primary py-4 text-base tracking-tight"
                     :disabled="form.processing"
                 >
-                    Register
-                </PrimaryButton>
+                    <span v-if="form.processing" class="flex items-center justify-center gap-2">
+                        <i class="bi bi-arrow-repeat animate-spin text-lg"></i>
+                        Encrypting Identity...
+                    </span>
+                    <span v-else>Authorize & Create Identity</span>
+                </button>
+
+                <div class="flex items-center justify-center gap-2">
+                     <span class="text-xs font-bold text-slate-400">Already in the registry?</span>
+                     <Link
+                        :href="route('login')"
+                        class="text-xs font-black text-indigo-500 hover:text-indigo-700 transition-colors"
+                    >
+                        Return to Authentication
+                    </Link>
+                </div>
             </div>
         </form>
     </GuestLayout>

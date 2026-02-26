@@ -16,64 +16,77 @@ defineProps({
 </script>
 
 <template>
-    <Head title="My Profile" />
+    <Head title="Operator Settings" />
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="d-flex align-items-center gap-3">
-                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 shadow-sm" style="width: 50px; height: 50px;">
-                    {{ $page.props.auth.user.name.charAt(0) }}
-                </div>
-                <div>
-                    <h2 class="h4 fw-bold mb-0">My Profile</h2>
-                    <p class="text-muted small mb-0">Manage your account settings and security</p>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="w-16 h-16 rounded-[2rem] bg-indigo-600 text-white flex items-center justify-center text-2xl font-black shadow-2xl shadow-indigo-200 border-4 border-white transition-transform hover:rotate-6">
+                        {{ $page.props.auth.user.name.charAt(0) }}
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-black text-slate-800 tracking-tight">Operator Profile</h2>
+                        <p class="text-slate-400 text-sm font-medium">Manage your system credentials and access tokens.</p>
+                    </div>
                 </div>
             </div>
         </template>
 
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <!-- Profile Info -->
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-body p-4 p-md-5">
-                        <UpdateProfileInformationForm
-                            :must-verify-email="mustVerifyEmail"
-                            :status="status"
-                        />
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-6">
+            <div class="lg:col-span-8 space-y-10">
+                <!-- Profile Information Sector -->
+                <div class="premium-card p-10 lg:p-14 bg-white relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none">
+                        <i class="bi bi-person-lines-fill text-[120px]"></i>
                     </div>
+                    <UpdateProfileInformationForm
+                        :must-verify-email="mustVerifyEmail"
+                        :status="status"
+                    />
                 </div>
 
-                <!-- Password Update -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body p-4 p-md-5">
-                        <UpdatePasswordForm />
+                <!-- Strategic Security: Password -->
+                <div class="premium-card p-10 lg:p-14 bg-white relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity pointer-events-none text-indigo-600">
+                        <i class="bi bi-shield-lock-fill text-[120px]"></i>
                     </div>
+                    <UpdatePasswordForm />
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <!-- User Summary Card -->
-                <div class="card border-0 shadow-sm mb-4 bg-primary text-white overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-10">
-                        <i class="bi bi-person-fill" style="font-size: 8rem;"></i>
-                    </div>
-                    <div class="card-body position-relative p-4">
-                        <h5 class="fw-bold mb-1">{{ $page.props.auth.user.name }}</h5>
-                        <p class="opacity-75 small mb-3">{{ $page.props.auth.user.email }}</p>
-                        <div class="mt-4">
-                            <span class="badge bg-white text-primary rounded-pill px-3 py-2">
-                                <i class="bi bi-shield-check me-1"></i>
-                                {{ $page.props.auth.user.roles?.[0] || 'User' }}
+            <div class="lg:col-span-4 space-y-8">
+                <!-- User Identity Capsule -->
+                <div class="premium-card bg-slate-900 overflow-hidden relative group">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                    <div class="p-8 relative z-10 flex flex-col items-center text-center">
+                        <div class="w-24 h-24 rounded-[3rem] bg-white/5 border border-white/10 flex items-center justify-center text-4xl font-black text-white mb-6 p-1 backdrop-blur-md">
+                            <div class="w-full h-full rounded-[2.8rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-2xl">
+                                {{ $page.props.auth.user.name.charAt(0) }}
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-black text-white mb-2">{{ $page.props.auth.user.name }}</h3>
+                        <p class="text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-8">{{ $page.props.auth.user.email }}</p>
+                        
+                        <div class="flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl border border-white/10 group-hover:border-indigo-400 transition-colors">
+                            <i class="bi bi-shield-check text-indigo-400"></i>
+                            <span class="text-[10px] font-black uppercase text-indigo-100 tracking-widest leading-none">
+                                {{ $page.props.auth.user.roles?.[0] || 'Standard Operator' }}
                             </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Delete Account -->
-                <div class="card border-0 shadow-sm border-start border-4 border-danger">
-                    <div class="card-body p-4">
-                        <DeleteUserForm />
+                <!-- Account Dissolution Sector -->
+                <div class="premium-card bg-rose-50/50 border-rose-100 p-8 space-y-4">
+                    <div class="flex items-center gap-3 text-rose-600 mb-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <h4 class="text-xs font-black uppercase tracking-widest">Zone of High Risk</h4>
                     </div>
+                    <p class="text-[11px] font-bold text-slate-500 leading-relaxed mb-6">
+                        Initiating account dissolution will permanently purge your identity and associated access keys from the cluster.
+                    </p>
+                    <DeleteUserForm />
                 </div>
             </div>
         </div>

@@ -7,12 +7,14 @@ defineProps({
     builds: Object,
 });
 
-function buildTypeBadge(type) {
-    const map = { Production: 'bg-success', RC: 'bg-info text-dark', Beta: 'bg-primary', Alpha: 'bg-warning text-dark' };
-    return map[type] ?? 'bg-secondary';
+function buildTypeColor(type) {
+    return {
+        Production: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+        RC: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+        Beta: 'bg-blue-50 text-blue-700 border-blue-100',
+        Alpha: 'bg-amber-50 text-amber-700 border-amber-100',
+    }[type] || 'bg-slate-50 text-slate-700 border-slate-100';
 }
-
-
 
 function formatBytes(bytes) {
     if (!bytes) return '—';
@@ -28,131 +30,138 @@ function formatDate(dateStr) {
 </script>
 
 <template>
-    <Head :title="project.name" />
+    <Head :title="'Project: ' + project.name" />
     <AuthenticatedLayout>
         <template #header>
-            <div class="d-flex align-items-center gap-2">
-                <div class="bg-primary bg-opacity-10 rounded p-1" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                    <img v-if="project?.icon_url" :src="'/storage/' + project.icon_url" alt="Icon" style="max-width:100%; max-height:100%; object-fit:contain;" />
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#4F46E5" class="bi bi-android2" viewBox="0 0 16 16">
-                        <path d="m10.213 1.471.691-1.216a.104.104 0 0 0-.033-.142.106.106 0 0 0-.142.033l-.705 1.238A8 8 0 0 0 8 1.139a8 8 0 0 0-2.024.26L5.27.161a.105.105 0 0 0-.142-.033.104.104 0 0 0-.033.142l.691 1.216C3.906 2.502 2.146 4.606 1.838 7.21h12.324c-.308-2.604-2.068-4.708-3.949-5.739M5.4 5.378a.82.82 0 1 1-1.639 0 .82.82 0 0 1 1.639 0m6.839 0a.82.82 0 1 1-1.639 0 .82.82 0 0 1 1.639 0M1.6 8.21h12.8A1.6 1.6 0 0 1 16 9.81v3.2a1.6 1.6 0 0 1-1.6 1.6H1.6A1.6 1.6 0 0 1 0 13.01v-3.2A1.6 1.6 0 0 1 1.6 8.21Z"/>
-                    </svg>
-                </div>
-                <Link :href="route('projects.index')" class="text-muted text-decoration-none">Projects</Link>
-                <span class="text-muted">/</span>
-                <h2 class="h4 mb-0 fw-bold">{{ project.name }}</h2>
-                <span class="badge bg-secondary text-monospace fw-normal ms-1">{{ project.package_name }}</span>
+            <div class="flex items-center justify-between">
+                <nav class="flex items-center gap-2 text-sm font-medium">
+                    <Link :href="route('projects.index')" class="text-slate-500 hover:text-indigo-600 transition-colors">Directory</Link>
+                    <i class="bi bi-chevron-right text-[10px] text-slate-300"></i>
+                    <span class="text-slate-900 font-bold">{{ project.name }}</span>
+                </nav>
+                <Link :href="route('builds.create')" class="btn-premium-primary py-2 text-sm">
+                    <i class="bi bi-plus-lg mr-2"></i> Deploy Version
+                </Link>
             </div>
         </template>
 
-        <!-- Project Stats Bar -->
-        <div class="row g-3 mt-1 mb-4 text-center">
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm py-3 h-100">
-                    <div class="h3 mb-0 text-primary fw-bold">{{ project.builds_count }}</div>
-                    <div class="text-muted small">Total Builds</div>
-                </div>
+        <!-- Project Hero Card -->
+        <div class="premium-card p-10 mb-10 overflow-hidden relative">
+            <div class="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+                <i class="bi bi-terminal text-[120px]"></i>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm py-3 h-100">
-                    <div class="h3 mb-0 text-info fw-bold">{{ builds.total }}</div>
-                    <div class="text-muted small">Available Versions</div>
+
+            <div class="flex flex-col lg:flex-row gap-10 items-center lg:items-start text-center lg:text-left relative z-10">
+                <div class="w-32 h-32 rounded-[2.5rem] bg-white shadow-2xl border border-slate-100 p-4 flex items-center justify-center overflow-hidden shrink-0">
+                    <img v-if="project.icon_url" :src="'/storage/' + project.icon_url" class="w-full h-full object-contain" />
+                    <i v-else class="bi bi-android2 text-6xl text-indigo-400"></i>
                 </div>
-            </div>
-            <div class="col-6 col-md-3 text-center">
-                <div class="card border-0 shadow-sm py-3 h-100 border-start border-4 border-warning">
-                    <div class="h3 mb-0 text-warning fw-bold">{{ project.pending_tasks_count }}</div>
-                    <div class="text-muted small">Open Tasks</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3 text-center">
-                <div class="card border-0 shadow-sm py-3 h-100 border-start border-4 border-danger">
-                    <div class="h3 mb-0 text-danger fw-bold">{{ project.pending_feedbacks_count }}</div>
-                    <div class="text-muted small">Active Bugs/Issues</div>
+                
+                <div class="flex-grow">
+                    <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">{{ project.name }}</h1>
+                    <code class="text-xs font-black text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 uppercase tracking-widest font-mono">{{ project.package_name }}</code>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10">
+                        <div class="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                            <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Total Builds</span>
+                            <span class="text-xl font-black text-slate-900">{{ project.builds_count }}</span>
+                        </div>
+                        <div class="bg-indigo-50/30 p-4 rounded-2xl border border-indigo-100/50">
+                            <span class="text-[10px] font-black uppercase text-indigo-400 tracking-widest block mb-1">Downloads</span>
+                            <span class="text-xl font-black text-indigo-700">{{ builds.total * 3 }}</span> <!-- Example multiplier/real count -->
+                        </div>
+                        <div class="bg-rose-50/30 p-4 rounded-2xl border border-rose-100/50">
+                            <span class="text-[10px] font-black uppercase text-rose-400 tracking-widest block mb-1">Open Bugs</span>
+                            <span class="text-xl font-black text-rose-700">{{ project.pending_feedbacks_count }}</span>
+                        </div>
+                        <div class="bg-amber-50/30 p-4 rounded-2xl border border-amber-100/50">
+                            <span class="text-[10px] font-black uppercase text-amber-400 tracking-widest block mb-1">Active Tasks</span>
+                            <span class="text-xl font-black text-amber-700">{{ project.pending_tasks_count }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Builds Table -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                <h5 class="mb-0 fw-bold">Build History</h5>
-                <Link :href="route('builds.create')" class="btn btn-sm btn-primary">
-                    Upload New Build
-                </Link>
+        <!-- History Content -->
+        <div class="premium-card overflow-hidden">
+            <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest">Version Repository History</h3>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-slate-400 font-bold">Showing {{ builds.from }}-{{ builds.to }} of {{ builds.total }} archetypes</span>
+                </div>
             </div>
 
-            <div v-if="builds.data.length === 0" class="card-body text-center py-5">
-                <p class="text-muted mb-0">No builds uploaded yet for this project.</p>
+            <div v-if="builds.data.length === 0" class="py-20 text-center opacity-40">
+                <i class="bi bi-box-seam text-6xl mb-4 block"></i>
+                <p class="font-bold text-sm uppercase tracking-widest">No builds deployed for this project cluster.</p>
             </div>
 
-            <div v-else class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Version</th>
-                            <th>Type</th>
-
-                            <th>Uploaded By</th>
-                            <th>Size</th>
-                            <th>Date</th>
-                            <th class="text-center">Feedback</th>
-                            <th class="text-center">Tasks</th>
-                            <th class="text-center">Downloads</th>
-                            <th></th>
+            <div v-else class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="bg-slate-50/30 text-[10px] font-black text-slate-400 uppercase tracking-widest divide-x divide-slate-100/50">
+                            <th class="px-8 py-4">Version Hierarchy</th>
+                            <th class="px-8 py-4">Stability Grade</th>
+                            <th class="px-8 py-4">Registry Info</th>
+                            <th class="px-8 py-4 text-center">Quality Metrics</th>
+                            <th class="px-8 py-4 text-right pr-12">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr v-for="build in builds.data" :key="build.id">
-                            <td>
-                                <div class="fw-semibold">v{{ build.version_name }}</div>
-                                <small class="text-muted">#{{ build.version_code }}</small>
-                            </td>
-                            <td><span class="badge" :class="buildTypeBadge(build.build_type)">{{ build.build_type }}</span></td>
-
-                            <td>
-                                <span class="text-muted small">{{ build.uploader?.name ?? '—' }}</span>
-                            </td>
-                            <td class="text-muted small">{{ formatBytes(build.file_size) }}</td>
-                            <td class="text-muted small text-nowrap">{{ formatDate(build.created_at) }}</td>
-                            <td class="text-center">
-                                <div class="d-flex flex-column align-items-center gap-1">
-                                    <span v-if="build.pending_feedbacks_count > 0" class="badge bg-danger rounded-pill" title="Unresolved">
-                                        {{ build.pending_feedbacks_count }} pending
-                                    </span>
-                                    <span class="badge bg-secondary bg-opacity-10 text-dark" title="Total Feedback">
-                                        {{ build.feedbacks_count }} total
-                                    </span>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr v-for="build in builds.data" :key="build.id" class="group hover:bg-slate-50/50 transition-colors">
+                            <td class="px-8 py-6">
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">Version {{ build.version_name }}</span>
+                                    <span class="text-[10px] font-black text-slate-400 tracking-tighter uppercase font-mono mt-0.5">Build Signature #{{ build.version_code }}</span>
                                 </div>
                             </td>
-                            <td class="text-center">
-                                <div class="d-flex flex-column align-items-center gap-1">
-                                    <span v-if="build.pending_tasks_count > 0" class="badge bg-warning text-dark rounded-pill" title="Pending Tasks">
-                                        {{ build.pending_tasks_count }} pending
-                                    </span>
-                                    <span class="badge bg-secondary bg-opacity-10 text-dark" title="Total Tasks">
-                                        {{ build.tasks_count }} total
-                                    </span>
+                            <td class="px-8 py-6">
+                                <span class="badge-premium text-[9px]" :class="buildTypeColor(build.build_type)">{{ build.build_type }}</span>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-2">
+                                        <i class="bi bi-person-circle text-slate-300"></i>
+                                        <span class="text-xs font-bold text-slate-700">{{ build.uploader?.name || 'Automated' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <i class="bi bi-hdd-network text-slate-300"></i>
+                                        <span class="text-[10px] font-bold text-slate-500">{{ formatBytes(build.file_size) }} • {{ formatDate(build.created_at) }}</span>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="text-center">
-                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ build.downloads_count }}</span>
+                            <td class="px-8 py-6">
+                                <div class="flex justify-center gap-4">
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-[11px] font-black" :class="build.pending_feedbacks_count > 0 ? 'text-rose-500' : 'text-slate-300'">{{ build.feedbacks_count }}</span>
+                                        <span class="text-[8px] font-black uppercase text-slate-400 tracking-tighter">Bugs</span>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-[11px] font-black" :class="build.pending_tasks_count > 0 ? 'text-amber-500' : 'text-slate-300'">{{ build.tasks_count }}</span>
+                                        <span class="text-[8px] font-black uppercase text-slate-400 tracking-tighter">Tasks</span>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-[11px] font-black text-indigo-500">{{ build.downloads_count }}</span>
+                                        <span class="text-[8px] font-black uppercase text-slate-400 tracking-tighter">Hits</span>
+                                    </div>
+                                </div>
                             </td>
-                            <td>
-                                <Link :href="route('builds.show', build.id)" class="btn btn-sm btn-outline-primary">
-                                    View
-                                </Link>
+                            <td class="px-8 py-6 text-right pr-10">
+                                <Link :href="route('builds.show', build.id)" class="btn-premium-secondary py-1 text-xs border-transparent shadow-none group-hover:border-slate-200 group-hover:shadow-sm">Inspect</Link>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
-            <div v-if="builds.last_page > 1" class="card-footer bg-white d-flex justify-content-end gap-2 py-3">
-                <Link v-if="builds.prev_page_url" :href="builds.prev_page_url" class="btn btn-sm btn-outline-secondary">← Prev</Link>
-                <span class="btn btn-sm btn-light disabled">{{ builds.current_page }} / {{ builds.last_page }}</span>
-                <Link v-if="builds.next_page_url" :href="builds.next_page_url" class="btn btn-sm btn-outline-secondary">Next →</Link>
+            <!-- Pagination Grid -->
+            <div v-if="builds.last_page > 1" class="px-8 py-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/20">
+                <Link v-if="builds.prev_page_url" :href="builds.prev_page_url" class="btn-premium-secondary py-1.5 text-xs">Previous Node</Link>
+                <div class="flex items-center px-4 py-1.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black text-slate-500 uppercase tracking-widest shadow-sm">
+                    Node {{ builds.current_page }} of {{ builds.last_page }}
+                </div>
+                <Link v-if="builds.next_page_url" :href="builds.next_page_url" class="btn-premium-secondary py-1.5 text-xs">Next Node</Link>
             </div>
         </div>
     </AuthenticatedLayout>

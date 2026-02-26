@@ -1,8 +1,10 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 
 const showingNavigationDropdown = ref(false);
+const isSidebarOpen = ref(true);
+const isNotificationsOpen = ref(false);
 
 function markAsRead(notif) {
     router.post(route('notifications.read', notif.id), {}, {
@@ -13,114 +15,192 @@ function markAsRead(notif) {
         }
     });
 }
+
+function toggleSidebar() {
+    isSidebarOpen.value = !isSidebarOpen.value;
+}
 </script>
 
 <template>
-    <div>
-        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top" style="z-index: 1050;">
-            <div class="container">
-                <Link :href="route('dashboard')" class="navbar-brand d-flex align-items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-android2 me-2" viewBox="0 0 16 16">
-                        <path d="m10.213 1.471.691-1.216a.104.104 0 0 0-.033-.142.106.106 0 0 0-.142.033l-.705 1.238A8 8 0 0 0 8 1.139a8 8 0 0 0-2.024.26L5.27.161a.105.105 0 0 0-.142-.033.104.104 0 0 0-.033.142l.691 1.216C3.906 2.502 2.146 4.606 1.838 7.21h12.324c-.308-2.604-2.068-4.708-3.949-5.739M5.4 5.378a.82.82 0 1 1-1.639 0 .82.82 0 0 1 1.639 0m6.839 0a.82.82 0 1 1-1.639 0 .82.82 0 0 1 1.639 0M1.6 8.21h12.8A1.6 1.6 0 0 1 16 9.81v3.2a1.6 1.6 0 0 1-1.6 1.6H1.6A1.6 1.6 0 0 1 0 13.01v-3.2A1.6 1.6 0 0 1 1.6 8.21Z"/>
-                    </svg>
-                    APK Distribution
-                </Link>
-                
-                <button
-                    class="navbar-toggler"
-                    type="button"
-                    @click="showingNavigationDropdown = !showingNavigationDropdown"
-                >
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+    <div class="min-h-screen bg-slate-50 flex">
+        <!-- Sidebar -->
+        <aside 
+            class="fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 text-white transition-all duration-300 ease-in-out lg:static lg:block"
+            :class="{ '-translate-x-full lg:translate-x-0': !isSidebarOpen, 'translate-x-0': isSidebarOpen }"
+        >
+            <div class="h-full flex flex-col">
+                <!-- Logo -->
+                <div class="p-6 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight">Antigravity</span>
+                </div>
 
-                <div class="collapse navbar-collapse" :class="{ show: showingNavigationDropdown }">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <Link :href="route('dashboard')" class="nav-link" :class="{ active: route().current('dashboard') }">
-                                Dashboard
-                            </Link>
-                        </li>
-                        <li class="nav-item">
-                            <Link :href="route('projects.index')" class="nav-link" :class="{ active: route().current('projects.*') }">Projects</Link>
-                        </li>
-                        <li class="nav-item">
-                            <Link :href="route('feedback.index')" class="nav-link" :class="{ active: route().current('feedback.*') }">Feedback</Link>
-                        </li>
-                        <li class="nav-item">
-                            <Link :href="route('tasks.index')" class="nav-link" :class="{ active: route().current('tasks.*') }">Tasks</Link>
-                        </li>
-                        <li class="nav-item" v-if="$page.props.auth.user.roles?.includes('Admin')">
-                            <Link :href="route('users.index')" class="nav-link" :class="{ active: route().current('users.*') }">Users</Link>
-                        </li>
-                        <li class="nav-item" v-if="$page.props.auth.user.roles?.includes('Admin')">
-                            <Link :href="route('activity-logs.index')" class="nav-link" :class="{ active: route().current('activity-logs.*') }">Activity Log</Link>
-                        </li>
-                    </ul>
+                <!-- Navigation -->
+                <nav class="flex-grow px-4 space-y-2 mt-4">
+                    <Link 
+                        :href="route('dashboard')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group"
+                        :class="route().current('dashboard') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                    >
+                        <i class="bi bi-speedometer2 text-lg"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </Link>
 
-                    <ul class="navbar-nav ms-auto align-items-center">
-                        <!-- Notifications -->
-                        <li class="nav-item dropdown me-3">
-                            <a class="nav-link position-relative py-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-bell fs-5"></i>
-                                <span v-if="$page.props.auth.user.unread_notifications_count > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                                    {{ $page.props.auth.user.unread_notifications_count }}
-                                </span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 py-0 overflow-hidden" style="width: 300px;">
-                                <li class="bg-light p-2 border-bottom">
-                                    <span class="small fw-bold text-muted">Recent Notifications</span>
-                                </li>
-                                <li v-if="$page.props.auth.user.notifications.length === 0" class="p-3 text-center text-muted small">
-                                    No new notifications
-                                </li>
-                                <li v-for="notif in $page.props.auth.user.notifications" :key="notif.id" class="border-bottom">
-                                    <div @click="markAsRead(notif)" class="dropdown-item p-3 white-space-normal" style="cursor: pointer;" :class="{ 'bg-light': !notif.read_at }">
-                                        <div class="fw-bold small d-flex justify-content-between">
-                                            {{ notif.data.title }}
-                                            <span v-if="!notif.read_at" class="badge rounded-pill bg-primary" style="font-size: 0.5rem; height: fit-content;">NEW</span>
-                                        </div>
-                                        <div class="text-muted small lh-sm">{{ notif.data.message }}</div>
-                                        <div class="text-muted" style="font-size: 0.7rem;">{{ new Date(notif.created_at).toLocaleString() }}</div>
-                                    </div>
-                                </li>
-                                <li class="bg-light text-center p-2">
-                                    <Link :href="route('notifications.clear')" method="post" as="button" class="btn btn-link btn-sm p-0 m-0 small text-decoration-none border-0 box-shadow-none">Clear All</Link>
-                                </li>
-                            </ul>
-                        </li>
+                    <Link 
+                        :href="route('projects.index')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group"
+                        :class="route().current('projects.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                    >
+                        <i class="bi bi-folder text-lg"></i>
+                        <span class="font-medium">Projects</span>
+                    </Link>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ $page.props.auth.user.name }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <Link :href="route('profile.edit')" class="dropdown-item">Profile</Link>
-                                </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <Link :href="route('logout')" method="post" as="button" class="dropdown-item">
-                                        Log Out
-                                    </Link>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <Link 
+                        :href="route('feedback.index')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group"
+                        :class="route().current('feedback.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                    >
+                        <i class="bi bi-chat-left-dots text-lg"></i>
+                        <span class="font-medium">Feedback</span>
+                    </Link>
+
+                    <Link 
+                        :href="route('tasks.index')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group"
+                        :class="route().current('tasks.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                    >
+                        <i class="bi bi-check2-square text-lg"></i>
+                        <span class="font-medium">Tasks</span>
+                    </Link>
+
+                    <div v-if="$page.props.auth.user.roles?.includes('Admin')" class="pt-6 pb-2 px-4 uppercase text-[10px] font-bold text-slate-500 tracking-widest">Administration</div>
+
+                    <Link 
+                        v-if="$page.props.auth.user.roles?.includes('Admin')"
+                        :href="route('users.index')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group"
+                        :class="route().current('users.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                    >
+                        <i class="bi bi-people text-lg"></i>
+                        <span class="font-medium">User Management</span>
+                    </Link>
+
+                    <Link 
+                        v-if="$page.props.auth.user.roles?.includes('Admin')"
+                        :href="route('activity-logs.index')" 
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group"
+                        :class="route().current('activity-logs.*') ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                    >
+                        <i class="bi bi-journal-text text-lg"></i>
+                        <span class="font-medium">Activity Logs</span>
+                    </Link>
+                </nav>
+
+                <!-- User Footer -->
+                <div class="p-4 mt-auto">
+                    <div class="p-4 bg-slate-800 rounded-2xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-indigo-400 border border-slate-600">
+                            {{ $page.props.auth.user.name.charAt(0) }}
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <p class="text-sm font-semibold truncate">{{ $page.props.auth.user.name }}</p>
+                            <p class="text-[11px] text-slate-500 truncate capitalize">{{ $page.props.auth.user.roles?.join(', ') || 'User' }}</p>
+                        </div>
+                        <Link :href="route('logout')" method="post" as="button" class="text-slate-400 hover:text-rose-400 transition-colors">
+                            <i class="bi bi-box-arrow-right text-lg"></i>
+                        </Link>
+                    </div>
                 </div>
             </div>
-        </nav>
+        </aside>
 
-        <!-- Page Heading -->
-        <header class="bg-white shadow-sm py-3 mb-4" v-if="$slots.header">
-            <div class="container">
-                <slot name="header" />
-            </div>
-        </header>
+        <!-- Main Content Wrapper -->
+        <div class="flex-grow flex flex-col min-w-0">
+            <!-- Topbar -->
+            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 px-6 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button @click="toggleSidebar" class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">
+                        <i class="bi bi-list text-2xl"></i>
+                    </button>
+                    <h1 v-if="!$slots.header" class="text-lg font-bold text-slate-800">APK Management</h1>
+                    <div v-if="$slots.header" class="flex-grow">
+                        <slot name="header" />
+                    </div>
+                </div>
 
-        <!-- Page Content -->
-        <main class="container">
-            <slot />
-        </main>
+                <div class="flex items-center gap-3">
+                    <!-- Notifications Dropdown -->
+                    <div class="relative">
+                        <button 
+                            @click="isNotificationsOpen = !isNotificationsOpen"
+                            class="p-2.5 text-slate-500 hover:bg-slate-100 rounded-xl transition-all relative"
+                        >
+                            <i class="bi bi-bell text-xl"></i>
+                            <span v-if="$page.props.auth.user.unread_notifications_count > 0" class="absolute top-2 right-2 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold border-2 border-white">
+                                {{ $page.props.auth.user.unread_notifications_count }}
+                            </span>
+                        </button>
+
+                        <div 
+                            v-if="isNotificationsOpen" 
+                            class="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in zoom-in duration-200"
+                        >
+                            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-800">Notifications</h3>
+                                <Link :href="route('notifications.clear')" method="post" as="button" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800">Clear all</Link>
+                            </div>
+                            <div class="max-h-[400px] overflow-y-auto">
+                                <div v-if="$page.props.auth.user.notifications.length === 0" class="p-8 text-center text-slate-400">
+                                    <i class="bi bi-bell-slash text-4xl block mb-2 opacity-20"></i>
+                                    <p class="text-sm">No new notifications</p>
+                                </div>
+                                <div 
+                                    v-for="notif in $page.props.auth.user.notifications" 
+                                    :key="notif.id"
+                                    @click="markAsRead(notif)"
+                                    class="p-4 border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors group"
+                                    :class="{ 'bg-indigo-50/30': !notif.read_at }"
+                                >
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{{ notif.data.title }}</h4>
+                                        <span v-if="!notif.read_at" class="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                                    </div>
+                                    <p class="text-[13px] text-slate-500 leading-snug">{{ notif.data.message }}</p>
+                                    <p class="text-[10px] text-slate-400 mt-2 font-medium uppercase tracking-wider">{{ new Date(notif.created_at).toLocaleString() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Close overlay -->
+                        <div v-if="isNotificationsOpen" @click="isNotificationsOpen = false" class="fixed inset-0 z-40"></div>
+                    </div>
+
+                    <Link :href="route('profile.edit')" class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all">
+                        <i class="bi bi-person text-xl"></i>
+                    </Link>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="flex-grow p-6 lg:p-10 max-w-[1600px]">
+                <slot />
+            </main>
+        </div>
     </div>
 </template>
+
+<style>
+/* Custom animations */
+.animate-in {
+    animation-duration: 0.2s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.fade-in { animation-name: fade-in; }
+.zoom-in { animation-name: zoom-in; }
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zoom-in { from { transform: scale(0.95); } to { transform: scale(1); } }
+</style>

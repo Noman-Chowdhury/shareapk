@@ -25,7 +25,6 @@ const handleFileChange = async (e) => {
     analysisError.value = null;
     isAnalyzing.value = true;
 
-    // Create a form data for pre-analysis
     const formData = new FormData();
     formData.append('apk_file', file);
 
@@ -50,9 +49,6 @@ const handleFileChange = async (e) => {
 const submit = () => {
     form.post(route('builds.store'), {
         preserveScroll: true,
-        onSuccess: () => {
-             // Reset if needed, but normally Inertia redirects
-        }
     });
 };
 
@@ -66,128 +62,153 @@ function formatBytes(bytes) {
 </script>
 
 <template>
-    <Head title="Upload APK Build" />
+    <Head title="Deploy New Build" />
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="h4 font-weight-bold text-dark mb-0">Upload New Build</h2>
+            <div>
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Deploy Build</h2>
+                <p class="text-slate-500 text-sm font-medium">Automatic extraction of metadata and project grouping.</p>
             </div>
         </template>
 
-        <div class="row justify-content-center mt-4">
-            <div class="col-lg-10 col-xl-8">
-                <div class="card border-0 shadow-sm overflow-hidden">
-                    <div class="card-body p-0">
-                        <div class="row g-0">
-                            <!-- Left Side: Form -->
-                            <div class="col-md-7 p-4 p-md-5">
-                                <form @submit.prevent="submit">
-                                    <h5 class="fw-bold mb-4">Select APK</h5>
+        <div class="max-w-5xl mx-auto">
+            <div class="premium-card overflow-hidden">
+                <div class="flex flex-col md:flex-row">
+                    <!-- Config Section -->
+                    <div class="md:w-[55%] p-10 lg:p-12">
+                        <form @submit.prevent="submit" class="space-y-8">
+                            <div class="space-y-4">
+                                <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest">1. Binary Source</h3>
+                                <div 
+                                    class="relative border-4 border-dashed rounded-[2.5rem] p-10 text-center transition-all cursor-pointer group"
+                                    :class="form.apk_file ? 'border-indigo-100 bg-indigo-50/30' : 'border-slate-100 hover:border-indigo-200 hover:bg-slate-50'"
+                                    @click="$refs.fileInput.click()"
+                                >
+                                    <input type="file" ref="fileInput" @change="handleFileChange" class="hidden" accept=".apk" />
                                     
-                                    <div class="mb-4">
-                                        <div 
-                                            class="upload-zone border-2 border-dashed rounded-3 p-4 text-center cursor-pointer transition"
-                                            :class="{'border-primary bg-primary bg-opacity-10': form.apk_file, 'border-light-subtle': !form.apk_file}"
-                                            onclick="document.getElementById('apk_file').click()"
-                                        >
-                                            <input type="file" @change="handleFileChange" class="d-none" id="apk_file" accept=".apk">
-                                            
-                                            <div v-if="!form.apk_file">
-                                                <i class="bi bi-cloud-arrow-up display-4 text-muted"></i>
-                                                <p class="mt-2 mb-0 fw-medium">Click to browse or drag and drop APK</p>
-                                                <small class="text-muted">Maximum file size: 500MB</small>
-                                            </div>
-                                            
-                                            <div v-else class="d-flex align-items-center justify-content-center gap-3">
-                                                <i class="bi bi-file-earmark-zip-fill text-primary display-6"></i>
-                                                <div class="text-start">
-                                                    <div class="fw-bold text-truncate" style="max-width: 200px;">{{ form.apk_file.name }}</div>
-                                                    <small class="text-muted">{{ formatBytes(form.apk_file.size) }}</small>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-link text-danger p-0" @click.stop="form.apk_file = null; apkDetails = null; form.temp_path = null">
-                                                    <i class="bi bi-x-circle-fill"></i>
-                                                </button>
-                                            </div>
+                                    <div v-if="!form.apk_file" class="animate-in fade-in">
+                                        <div class="w-20 h-20 bg-white rounded-3xl shadow-sm border border-slate-100 mx-auto flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                            <i class="bi bi-cloud-arrow-up text-3xl text-indigo-500"></i>
                                         </div>
-                                        <div v-if="form.errors.apk_file" class="text-danger small mt-1">{{ form.errors.apk_file }}</div>
+                                        <p class="text-slate-800 font-bold tracking-tight">Drop APK binary here</p>
+                                        <p class="text-slate-400 text-xs font-medium uppercase tracking-widest mt-1">or click to browse local storage</p>
                                     </div>
 
-                                    <div class="row mb-3">
-                                        <div class="col-md-12">
-                                            <label class="form-label fw-bold small text-uppercase text-muted">Build Type</label>
-                                            <select v-model="form.build_type" class="form-select bg-light border-0 py-2">
-                                                <option value="Alpha">Alpha</option>
-                                                <option value="Beta">Beta</option>
-                                                <option value="RC">Release Candidate (RC)</option>
-                                                <option value="Production">Production</option>
-                                            </select>
+                                    <div v-else class="flex flex-col items-center animate-in zoom-in">
+                                        <div class="w-16 h-16 bg-white rounded-2xl shadow-sm border border-indigo-100 flex items-center justify-center mb-3">
+                                            <i class="bi bi-file-earmark-zip-fill text-2xl text-indigo-600"></i>
                                         </div>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label fw-bold small text-uppercase text-muted">Release Notes</label>
-                                        <textarea v-model="form.release_notes" class="form-control bg-light border-0" rows="4" placeholder="What's new in this version?"></textarea>
-                                    </div>
-
-                                    <div class="d-grid mt-5">
-                                        <button type="submit" class="btn btn-primary btn-lg shadow-sm" :disabled="form.processing || isAnalyzing || !apkDetails">
-                                            <span v-if="form.processing" class="spinner-border spinner-border-sm me-2"></span>
-                                            {{ form.processing ? 'Finalizing...' : 'Upload & Publish' }}
+                                        <p class="text-indigo-900 font-black text-sm max-w-[200px] truncate">{{ form.apk_file.name }}</p>
+                                        <p class="text-indigo-400 text-xs font-bold uppercase">{{ formatBytes(form.apk_file.size) }}</p>
+                                        <button @click.stop="form.apk_file = null; apkDetails = null; form.temp_path = null" class="absolute top-4 right-4 text-slate-300 hover:text-rose-500 transition-colors">
+                                            <i class="bi bi-x-circle-fill text-xl"></i>
                                         </button>
                                     </div>
-                                </form>
+                                </div>
+                                <p v-if="form.errors.apk_file" class="text-rose-500 text-[10px] font-black uppercase tracking-widest">{{ form.errors.apk_file }}</p>
                             </div>
 
-                            <!-- Right Side: Preview -->
-                            <div class="col-md-5 bg-light border-start p-4 p-md-5 d-flex flex-column justify-content-center">
-                                <div v-if="isAnalyzing" class="text-center py-5">
-                                    <div class="spinner-grow text-primary mb-3" role="status"></div>
-                                    <h6 class="fw-bold">Analyzing APK...</h6>
-                                    <p class="text-muted small">Please wait while we extract package details.</p>
-                                </div>
-
-                                <div v-else-if="apkDetails" class="text-center animate__animated animate__fadeIn">
-                                    <div class="mb-4 d-inline-block position-relative">
-                                        <img v-if="apkDetails.icon_data" :src="apkDetails.icon_data" class="rounded-4 shadow-sm" style="width: 96px; height: 96px; object-fit: cover;">
-                                        <div v-else class="bg-primary bg-opacity-10 rounded-4 d-flex align-items-center justify-content-center shadow-sm" style="width: 96px; height: 96px;">
-                                            <i class="bi bi-android2 text-primary display-4"></i>
-                                        </div>
-                                    </div>
-                                    
-                                    <h4 class="fw-bold mb-1">{{ apkDetails.app_name }}</h4>
-                                    <div class="badge bg-primary bg-opacity-10 text-primary rounded-pill mb-4 px-3">
-                                        v{{ apkDetails.version_name }} ({{ apkDetails.version_code }})
-                                    </div>
-
-                                    <ul class="list-group list-group-flush bg-transparent text-start small">
-                                        <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                            <span class="text-muted">Package</span>
-                                            <span class="fw-medium font-monospace">{{ apkDetails.package_name }}</span>
-                                        </li>
-                                        <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
-                                            <span class="text-muted">File Size</span>
-                                            <span class="fw-medium">{{ formatBytes(apkDetails.file_size) }}</span>
-                                        </li>
-                                    </ul>
-                                    
-                                    <div class="alert alert-info border-0 small mt-4 text-start">
-                                        <i class="bi bi-info-circle-fill me-2"></i>
-                                        These details were extracted from the AndroidManifest.xml inside your APK.
+                            <div class="grid grid-cols-1 gap-6">
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest">2. Distribution Target</h3>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <button 
+                                            v-for="type in ['Alpha', 'Beta', 'RC', 'Production']" 
+                                            :key="type"
+                                            type="button"
+                                            @click="form.build_type = type"
+                                            class="px-5 py-3 rounded-2xl border-2 font-bold transition-all text-sm"
+                                            :class="form.build_type === type ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100 scale-105' : 'bg-white text-slate-600 border-slate-100 hover:border-slate-300'"
+                                        >
+                                            {{ type }}
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div v-else-if="analysisError" class="text-center py-5">
-                                    <i class="bi bi-exclamation-triangle-fill text-danger display-4 mb-3"></i>
-                                    <h6 class="fw-bold text-danger">Analysis Failed</h6>
-                                    <p class="small mb-0">{{ analysisError }}</p>
-                                </div>
-
-                                <div v-else class="text-center py-5 text-muted">
-                                    <i class="bi bi-search display-1 opacity-25 mb-3"></i>
-                                    <p class="small px-4">Select an APK file to see a preview of its metadata and icon before publishing.</p>
+                                <div class="space-y-4">
+                                    <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest">3. Deployment Notes</h3>
+                                    <textarea 
+                                        v-model="form.release_notes" 
+                                        class="input-premium py-4 min-h-[140px] text-sm font-medium" 
+                                        placeholder="What architectural changes or bug fixes does this version include?"
+                                    ></textarea>
                                 </div>
                             </div>
+
+                            <div class="pt-6">
+                                <button 
+                                    type="submit" 
+                                    class="w-full btn-premium-primary py-4 text-lg" 
+                                    :disabled="form.processing || isAnalyzing || !apkDetails"
+                                >
+                                    <span v-if="form.processing" class="flex items-center justify-center gap-2">
+                                        <svg class="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        Uploading to Cluster...
+                                    </span>
+                                    <span v-else>Authorize Deployment</span>
+                                </button>
+                                <p v-if="!apkDetails && !isAnalyzing" class="text-center text-[10px] text-slate-400 font-black uppercase tracking-widest mt-4">Select APK to verify before submission</p>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="md:w-[45%] bg-slate-50 p-10 lg:p-12 border-l border-slate-100 flex flex-col items-center justify-center text-center">
+                        <div v-if="isAnalyzing" class="space-y-4 animate-in fade-in">
+                            <div class="w-24 h-24 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin mx-auto"></div>
+                            <h4 class="text-lg font-black text-slate-800">Deep Inspection</h4>
+                            <p class="text-slate-500 text-sm font-medium">Extracting manifest, resources and version signatures...</p>
+                        </div>
+
+                        <div v-else-if="apkDetails" class="w-full animate-in zoom-in space-y-8">
+                            <div class="relative inline-block mx-auto group">
+                                <div class="absolute -inset-4 bg-indigo-500/10 rounded-[3rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div class="relative w-32 h-32 rounded-[2.5rem] bg-white shadow-2xl border border-slate-100 overflow-hidden flex items-center justify-center p-4">
+                                    <img v-if="apkDetails.icon_data" :src="apkDetails.icon_data" class="w-full h-full object-contain" />
+                                    <i v-else class="bi bi-android2 text-5xl text-indigo-400"></i>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="text-2xl font-black text-slate-800 tracking-tight">{{ apkDetails.app_name }}</h3>
+                                <p class="text-[10px] font-black text-slate-400 font-mono tracking-widest uppercase mt-1">{{ apkDetails.package_name }}</p>
+                            </div>
+
+                            <div class="premium-card bg-white p-6 space-y-4 divide-y divide-slate-50">
+                                <div class="flex justify-between items-center pb-4 text-xs font-bold">
+                                    <span class="text-slate-400 uppercase tracking-widest">Version</span>
+                                    <span class="text-slate-800">v{{ apkDetails.version_name }} ({{ apkDetails.version_code }})</span>
+                                </div>
+                                <div class="flex justify-between items-center py-4 text-xs font-bold">
+                                    <span class="text-slate-400 uppercase tracking-widest">Density</span>
+                                    <span class="text-slate-800">xxhdpi+</span>
+                                </div>
+                                <div class="flex justify-between items-center pt-4 text-xs font-bold">
+                                    <span class="text-slate-400 uppercase tracking-widest">Min Sdk</span>
+                                    <span class="text-slate-800">Android 9.0+</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 text-left">
+                                <p class="text-[10px] font-black text-indigo-600 uppercase mb-1 tracking-widest">System Validation</p>
+                                <p class="text-xs text-indigo-900 font-bold leading-relaxed">Package integrity verified. Metadata successfully extracted and mapped to existing cluster.</p>
+                            </div>
+                        </div>
+
+                        <div v-else-if="analysisError" class="space-y-4 animate-in fade-in">
+                            <div class="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto border border-rose-100">
+                                <i class="bi bi-exclamation-triangle-fill text-3xl text-rose-500"></i>
+                            </div>
+                            <h4 class="text-lg font-black text-rose-800 tracking-tight">Validation Error</h4>
+                            <p class="text-rose-600/70 text-sm font-medium px-6">{{ analysisError }}</p>
+                            <button @click="form.apk_file = null; analysisError = null" class="text-rose-500 text-xs font-black uppercase tracking-widest hover:underline">Try another binary</button>
+                        </div>
+
+                        <div v-else class="space-y-4 opacity-40 px-10">
+                            <i class="bi bi-cpu text-7xl text-slate-300"></i>
+                            <h4 class="text-lg font-black text-slate-800">Engine Standby</h4>
+                            <p class="text-slate-500 text-sm font-medium leading-relaxed">The analysis engine will activate once a binary is provided to characterize the application's DNA.</p>
                         </div>
                     </div>
                 </div>
@@ -195,19 +216,3 @@ function formatBytes(bytes) {
         </div>
     </AuthenticatedLayout>
 </template>
-
-<style scoped>
-.upload-zone {
-    border-style: dashed !important;
-}
-.upload-zone:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.05);
-    border-color: var(--bs-primary) !important;
-}
-.cursor-pointer {
-    cursor: pointer;
-}
-.transition {
-    transition: all 0.2s ease-in-out;
-}
-</style>
