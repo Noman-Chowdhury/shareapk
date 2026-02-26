@@ -12,10 +12,7 @@ function buildTypeBadge(type) {
     return map[type] ?? 'bg-secondary';
 }
 
-function statusBadge(status) {
-    const map = { Approved: 'bg-success', Rejected: 'bg-danger', Pending: 'bg-warning text-dark' };
-    return map[status] ?? 'bg-secondary';
-}
+
 
 function formatBytes(bytes) {
     if (!bytes) return '—';
@@ -95,7 +92,7 @@ function formatDate(dateStr) {
                         <tr>
                             <th>Version</th>
                             <th>Type</th>
-                            <th>Status</th>
+
                             <th>Uploaded By</th>
                             <th>Size</th>
                             <th>Date</th>
@@ -112,7 +109,7 @@ function formatDate(dateStr) {
                                 <small class="text-muted">#{{ build.version_code }}</small>
                             </td>
                             <td><span class="badge" :class="buildTypeBadge(build.build_type)">{{ build.build_type }}</span></td>
-                            <td><span class="badge" :class="statusBadge(build.status)">{{ build.status }}</span></td>
+
                             <td>
                                 <span class="text-muted small">{{ build.uploader?.name ?? '—' }}</span>
                             </td>

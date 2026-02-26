@@ -14,8 +14,6 @@ const currentUrl = computed(() => {
 const activeTab = ref('overview');
 
 const shareForm = useForm({ expires_at: '', download_limit: '', password: '' });
-const approveForm = useForm({ remarks: '' });
-const rejectForm  = useForm({ remarks: '' });
 
 function submitShare() {
     shareForm.post(route('share-links.store', props.build.id), {
@@ -176,18 +174,10 @@ function deleteTask(id) {
     }
 }
 
-function approveBuild() {
-    approveForm.post(route('builds.approve', props.build.id), {
-        preserveScroll: true,
-        onSuccess: () => approveForm.reset(),
-    });
-}
-
-function rejectBuild() {
-    rejectForm.post(route('builds.reject', props.build.id), {
-        preserveScroll: true,
-        onSuccess: () => rejectForm.reset(),
-    });
+function deleteBuild() {
+    if (confirm('CAUTION: Are you sure you want to delete this build? This will permanently remove the record and the physical APK file.')) {
+        router.delete(route('builds.destroy', props.build.id));
+    }
 }
 
 function buildTypeBadge(type) {
@@ -269,10 +259,9 @@ function formatDateShort(dateStr) {
                     <a :href="route('builds.download', build.id)" class="btn btn-sm btn-success">
                         ⬇ Download APK
                     </a>
-                    <template v-if="build.status === 'Pending' && ($page.props.auth.user.roles.includes('Admin') || $page.props.auth.user.roles.includes('Developer'))">
-                        <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#approveModal">✓ Approve</button>
-                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">✗ Reject</button>
-                    </template>
+                    <button v-if="$page.props.auth.user.roles.includes('Admin')" class="btn btn-sm btn-danger" @click="deleteBuild">
+                        <i class="bi bi-trash"></i> Delete Build
+                    </button>
                 </div>
             </div>
         </template>
@@ -380,12 +369,7 @@ function formatDateShort(dateStr) {
                             <div v-if="build.release_notes" class="bg-light rounded p-3" style="white-space:pre-wrap">{{ build.release_notes }}</div>
                             <p v-else class="text-muted fst-italic">No release notes provided.</p>
 
-                            <div v-if="build.approval_remarks" class="mt-3">
-                                <h6 class="text-uppercase text-muted fw-bold small mb-2">Approval Remarks</h6>
-                                <div class="alert" :class="build.status === 'Rejected' ? 'alert-danger' : 'alert-success'">
-                                    {{ build.approval_remarks }}
-                                </div>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -636,49 +620,7 @@ function formatDateShort(dateStr) {
         </div>
     </AuthenticatedLayout>
 
-    <!-- Approve Modal -->
-    <div class="modal fade" id="approveModal" tabindex="-1">
-        <div class="modal-dialog">
-            <form @submit.prevent="approveBuild">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-success">✓ Approve Build</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label class="form-label">Remarks (optional)</label>
-                        <textarea v-model="approveForm.remarks" class="form-control" rows="3" placeholder="Any notes or comments..."></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-success" :disabled="approveForm.processing">Approve Build</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 
-    <!-- Reject Modal -->
-    <div class="modal fade" id="rejectModal" tabindex="-1">
-        <div class="modal-dialog">
-            <form @submit.prevent="rejectBuild">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-danger">✗ Reject Build</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label class="form-label fw-semibold">Reason for rejection <span class="text-danger">*</span></label>
-                        <textarea v-model="rejectForm.remarks" class="form-control" rows="3" placeholder="Explain the issues found..." required></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-danger" :disabled="rejectForm.processing">Reject Build</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Feedback Modal -->
     <div class="modal fade" id="feedbackModal" tabindex="-1">

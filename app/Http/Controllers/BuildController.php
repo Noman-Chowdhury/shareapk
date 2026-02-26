@@ -30,36 +30,21 @@ class BuildController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Pre-analyze APK and return metadata.
      */
-    public function store(Request $request)
+    public function preAnalyze(Request $request)
     {
-        // Manually check for upload errors before validation
-        if ($request->hasFile('apk_file') && !$request->file('apk_file')->isValid()) {
-            $error = $request->file('apk_file')->getErrorMessage();
-            $errorCode = $request->file('apk_file')->getError();
-            \Log::error("APK Upload failed: " . $error . " (Code: " . $errorCode . ")");
-            return back()->withErrors(['apk_file' => 'Upload Error: ' . $error . ' (Code ' . $errorCode . ')']);
-        }
-
         $request->validate([
-            'apk_file' => 'required|file|max:512000', // Increased to 500MB in validation
-            'build_type' => 'required|in:Alpha,Beta,RC,Production',
-            'release_notes' => 'nullable|string'
+            'apk_file' => 'required|file|max:512000',
         ]);
 
         $file = $request->file('apk_file');
         
-        if ($file->getClientOriginalExtension() !== 'apk') {
-            return back()->withErrors(['apk_file' => 'The file must be an APK extension.']);
-        }
+        // Use a persistent temporary path if possible, or just store it in 'temp' disk
+        $tempPath = $file->store('temp', 'public');
+        $fullPath = storage_path('app/public/' . $tempPath);
 
         try {
-            // First store it locally so Parser can access it safely
-            $path = $file->store('builds', 'public');
-            $fullPath = storage_path('app/public/' . $path);
-            
-            // Parse APK
             $apk = new ApkParser($fullPath);
             $manifest = $apk->getManifest();
             
@@ -67,7 +52,7 @@ class BuildController extends Controller
             $versionCode = $manifest->getVersionCode();
             $versionName = $manifest->getVersionName();
             
-            // Extract app name using aapt if available (more reliable than parsing resource.arsc manually in PHP)
+            // App Name
             $appName = null;
             try {
                 $aaptOutput = shell_exec("aapt dump badging " . escapeshellarg($fullPath) . " 2>/dev/null | grep 'application-label:'");
@@ -76,32 +61,21 @@ class BuildController extends Controller
                 }
             } catch (\Exception $e) {}
 
-            // Fallback options
-            if (!$appName || str_starts_with($appName, '0x') || str_starts_with($appName, '@')) {
-                // Try php-apk-parser format
+            if (!$appName) {
                 try {
                     $parsedLabel = $manifest->getApplication()->getLabel();
-                    if ($parsedLabel && !str_starts_with($parsedLabel, '0x') && !str_starts_with($parsedLabel, '@')) {
-                        $appName = $parsedLabel;
-                    }
+                    if ($parsedLabel && !str_starts_with($parsedLabel, '0x')) $appName = $parsedLabel;
                 } catch (\Exception $e) {}
             }
 
-            if (!$appName || str_starts_with($appName, '0x') || str_starts_with($appName, '@')) {
-                // Ultimate Fallback: Title Case the last segment of the package name (e.g. com.example.my_app -> My App)
+            if (!$appName) {
                 $segments = explode('.', $packageName);
                 $appName = ucwords(str_replace('_', ' ', end($segments)));
             }
 
-            // Automate Project Creation based on package name!
-            $project = Project::firstOrCreate(
-                ['package_name' => $packageName],
-                ['name' => $appName ?? $packageName]
-            );
-
-            // Extract App Icon using aapt
+            // Icon Extraction (Base64 for preview)
+            $iconData = null;
             try {
-                // Find all application-icon entries
                 $iconOutput = shell_exec("aapt dump badging " . escapeshellarg($fullPath) . " 2>/dev/null | grep 'application-icon-'");
                 $iconPath = null;
                 $bestSize = 0;
@@ -109,10 +83,131 @@ class BuildController extends Controller
                 if ($iconOutput && preg_match_all("/application-icon-(\d+):'([^']+)'/", $iconOutput, $matches, PREG_SET_ORDER)) {
                     foreach ($matches as $match) {
                         $size = (int)$match[1];
-                        $path = $match[2];
-                        if ($size > $bestSize && str_ends_with(strtolower($path), '.png')) {
+                        if ($size > $bestSize && str_ends_with(strtolower($match[2]), '.png')) {
                             $bestSize = $size;
-                            $iconPath = $path;
+                            $iconPath = $match[2];
+                        }
+                    }
+                }
+
+                if ($iconPath) {
+                    $tempIcon = storage_path('app/public/temp/icon_' . time() . '.png');
+                    shell_exec("unzip -p " . escapeshellarg($fullPath) . " " . escapeshellarg($iconPath) . " > " . escapeshellarg($tempIcon));
+                    if (file_exists($tempIcon)) {
+                        $iconData = 'data:image/png;base64,' . base64_encode(file_get_contents($tempIcon));
+                        @unlink($tempIcon);
+                    }
+                }
+            } catch (\Exception $e) {}
+
+            return response()->json([
+                'success'      => true,
+                'package_name' => $packageName,
+                'version_code' => $versionCode,
+                'version_name' => $versionName,
+                'app_name'     => $appName,
+                'icon_data'    => $iconData,
+                'temp_path'    => $tempPath,
+                'file_size'    => $file->getSize(),
+            ]);
+
+        } catch (\Exception $e) {
+            @unlink($fullPath);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to parse APK: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        $finalPath = null;
+        $fileSize = 0;
+
+        if ($request->filled('temp_path')) {
+            $tempPath = $request->input('temp_path');
+            $fullTempPath = storage_path('app/public/' . $tempPath);
+            
+            if (!file_exists($fullTempPath)) {
+                return back()->withErrors(['apk_file' => 'Session expired. Please select the file again.']);
+            }
+
+            $request->validate([
+                'build_type' => 'required|in:Alpha,Beta,RC,Production',
+                'release_notes' => 'nullable|string'
+            ]);
+
+            $newPath = 'builds/' . basename($tempPath);
+            Storage::disk('public')->move($tempPath, $newPath);
+            $finalPath = $newPath;
+            $fileSize = filesize(storage_path('app/public/' . $finalPath));
+        } else {
+            if ($request->hasFile('apk_file') && !$request->file('apk_file')->isValid()) {
+                return back()->withErrors(['apk_file' => 'Upload Error: ' . $request->file('apk_file')->getErrorMessage()]);
+            }
+
+            $request->validate([
+                'apk_file' => 'required|file|max:512000',
+                'build_type' => 'required|in:Alpha,Beta,RC,Production',
+                'release_notes' => 'nullable|string'
+            ]);
+
+            $file = $request->file('apk_file');
+            $finalPath = $file->store('builds', 'public');
+            $fileSize = $file->getSize();
+        }
+
+        $fullPath = storage_path('app/public/' . $finalPath);
+
+        try {
+            // Parse APK
+            $apk = new ApkParser($fullPath);
+            $manifest = $apk->getManifest();
+            
+            $packageName = $manifest->getPackageName();
+            $versionCode = $manifest->getVersionCode();
+            $versionName = $manifest->getVersionName();
+            
+            // App Name extraction
+            $appName = null;
+            try {
+                $aaptOutput = shell_exec("aapt dump badging " . escapeshellarg($fullPath) . " 2>/dev/null | grep 'application-label:'");
+                if ($aaptOutput && preg_match("/application-label:'([^']+)'/", $aaptOutput, $matches)) {
+                    $appName = $matches[1];
+                }
+            } catch (\Exception $e) {}
+
+            if (!$appName) {
+                try {
+                    $parsedLabel = $manifest->getApplication()->getLabel();
+                    if ($parsedLabel && !str_starts_with($parsedLabel, '0x')) $appName = $parsedLabel;
+                } catch (\Exception $e) {}
+            }
+
+            if (!$appName) {
+                $segments = explode('.', $packageName);
+                $appName = ucwords(str_replace('_', ' ', end($segments)));
+            }
+
+            // Automate Project Creation
+            $project = Project::firstOrCreate(
+                ['package_name' => $packageName],
+                ['name' => $appName ?? $packageName]
+            );
+
+            // Icon Extraction using aapt
+            try {
+                $iconOutput = shell_exec("aapt dump badging " . escapeshellarg($fullPath) . " 2>/dev/null | grep 'application-icon-'");
+                $iconPath = null;
+                $bestSize = 0;
+
+                if ($iconOutput && preg_match_all("/application-icon-(\d+):'([^']+)'/", $iconOutput, $matches, PREG_SET_ORDER)) {
+                    foreach ($matches as $match) {
+                        $size = (int)$match[1];
+                        if ($size > $bestSize && str_ends_with(strtolower($match[2]), '.png')) {
+                            $bestSize = $size;
+                            $iconPath = $match[2];
                         }
                     }
                 }
@@ -132,8 +227,6 @@ class BuildController extends Controller
                     if (!file_exists(storage_path('app/public/icons'))) {
                         mkdir(storage_path('app/public/icons'), 0755, true);
                     }
-                    
-                    // Extract icon using unzip
                     shell_exec("unzip -p " . escapeshellarg($fullPath) . " " . escapeshellarg($iconPath) . " > " . escapeshellarg($iconLocalPath));
                     
                     if (file_exists($iconLocalPath) && filesize($iconLocalPath) > 0) {
@@ -141,7 +234,6 @@ class BuildController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                // Ignore icon extraction errors
                 \Log::warning("Icon extraction failed: " . $e->getMessage());
             }
 
@@ -153,8 +245,8 @@ class BuildController extends Controller
                 'version_code' => $versionCode,
                 'build_type' => $request->input('build_type', 'Beta'),
                 'release_notes' => $request->input('release_notes'),
-                'file_path' => $path,
-                'file_size' => $file->getSize(),
+                'file_path' => $finalPath,
+                'file_size' => $fileSize,
                 'status' => 'Pending'
             ]);
 
@@ -163,8 +255,8 @@ class BuildController extends Controller
             return redirect()->route('builds.show', $build->id)->with('success', 'APK Uploaded Successfully! Version: ' . $versionName);
 
         } catch (\Exception $e) {
-            if (isset($path)) {
-                Storage::disk('public')->delete($path);
+            if ($finalPath) {
+                Storage::disk('public')->delete($finalPath);
             }
             return back()->withErrors(['apk_file' => 'Failed to parse APK: ' . $e->getMessage()]);
         }
@@ -211,41 +303,27 @@ class BuildController extends Controller
         );
     }
 
-    public function approve(Build $build)
+    public function destroy(Build $build)
     {
-        $build->update([
-            'status'           => 'Approved',
-            'approved_by'      => auth()->id(),
-            'approval_remarks' => request('remarks'),
-        ]);
+        // Only Admins (or the uploader?) can delete. Let's stick to Admin as requested.
+        if (!auth()->user()->hasRole('Admin')) {
+            abort(403);
+        }
 
-        $build->uploader->notify(new GeneralNotification(
-            'Build Approved ✅',
-            "Your build for {$build->project->name} (v{$build->version_name}) has been approved.",
-            route('builds.show', $build->id)
-        ));
+        $projectName = $build->project->name;
+        $version = $build->version_name;
+        $filePath = $build->file_path;
 
-        ActivityLog::log('Build Approved', "Approved v{$build->version_name} for project {$build->project->name}", $build);
+        // Delete the record first (cascading deletes for feedback/tasks should be in migration)
+        $build->delete();
 
-        return back()->with('success', 'Build approved successfully.');
-    }
+        // Delete the file from storage
+        if (Storage::disk('public')->exists($filePath)) {
+            Storage::disk('public')->delete($filePath);
+        }
 
-    public function reject(Build $build)
-    {
-        $build->update([
-            'status'           => 'Rejected',
-            'approved_by'      => auth()->id(),
-            'approval_remarks' => request('remarks'),
-        ]);
+        ActivityLog::log('Build Deleted', "Deleted v{$version} from project {$projectName}");
 
-        $build->uploader->notify(new GeneralNotification(
-            'Build Rejected ❌',
-            "Your build for {$build->project->name} (v{$build->version_name}) has been rejected. Reason: " . request('remarks'),
-            route('builds.show', $build->id)
-        ));
-
-        ActivityLog::log('Build Rejected', "Rejected v{$build->version_name} for project {$build->project->name}", $build);
-
-        return back()->with('success', 'Build rejected.');
+        return redirect()->route('projects.show', $build->project_id)->with('success', 'Build and associated file deleted.');
     }
 }

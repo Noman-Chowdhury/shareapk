@@ -46,10 +46,10 @@ Route::middleware('auth')->group(function () {
     // Builds
     Route::get('/builds/create', [\App\Http\Controllers\BuildController::class, 'create'])->name('builds.create');
     Route::post('/builds', [\App\Http\Controllers\BuildController::class, 'store'])->name('builds.store');
+    Route::post('/builds/pre-analyze', [\App\Http\Controllers\BuildController::class, 'preAnalyze'])->name('builds.pre-analyze');
     Route::get('/builds/{build}', [\App\Http\Controllers\BuildController::class, 'show'])->name('builds.show');
     Route::get('/builds/{build}/download', [\App\Http\Controllers\BuildController::class, 'download'])->name('builds.download');
-    Route::post('/builds/{build}/approve', [\App\Http\Controllers\BuildController::class, 'approve'])->name('builds.approve');
-    Route::post('/builds/{build}/reject', [\App\Http\Controllers\BuildController::class, 'reject'])->name('builds.reject');
+    Route::delete('/builds/{build}', [\App\Http\Controllers\BuildController::class, 'destroy'])->name('builds.destroy');
 
     // Feedback
     Route::get('/feedback', [\App\Http\Controllers\FeedbackController::class, 'index'])->name('feedback.index');

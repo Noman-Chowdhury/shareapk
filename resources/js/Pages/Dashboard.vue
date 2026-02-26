@@ -88,7 +88,6 @@ defineProps({
                                                     {{ build.pending_tasks_count }} Tasks
                                                 </span>
                                             </div>
-                                            <span class="badge" :class="{'bg-warning text-dark': build.status === 'Pending', 'bg-success': build.status === 'Approved', 'bg-danger': build.status === 'Rejected'}">{{ build.status }}</span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mt-1 small text-muted">
                                             <div class="d-flex align-items-center gap-2">

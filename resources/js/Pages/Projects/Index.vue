@@ -16,14 +16,7 @@ function buildTypeBadge(type) {
     return map[type] ?? 'bg-secondary';
 }
 
-function statusBadge(status) {
-    const map = {
-        Approved: 'bg-success',
-        Rejected: 'bg-danger',
-        Pending: 'bg-warning text-dark',
-    };
-    return map[status] ?? 'bg-secondary';
-}
+
 </script>
 
 <template>
@@ -82,9 +75,7 @@ function statusBadge(status) {
                                     <span class="badge me-1" :class="buildTypeBadge(project.latest_build.build_type)">
                                         {{ project.latest_build.build_type }}
                                     </span>
-                                    <span class="badge" :class="statusBadge(project.latest_build.status)">
-                                        {{ project.latest_build.status }}
-                                    </span>
+
                                 </div>
                             </div>
                         </div>
