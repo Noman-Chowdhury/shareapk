@@ -45,7 +45,7 @@ class BuildController extends Controller
         $fullPath = storage_path('app/public/' . $tempPath);
 
         try {
-            $apk = new ApkParser($fullPath);
+            $apk = new ApkParser($fullPath, ['tmp_path' => storage_path('app/apk_temp')]);
             $manifest = $apk->getManifest();
             
             $packageName = $manifest->getPackageName();
@@ -162,7 +162,7 @@ class BuildController extends Controller
 
         try {
             // Parse APK
-            $apk = new ApkParser($fullPath);
+            $apk = new ApkParser($fullPath, ['tmp_path' => storage_path('app/apk_temp')]);
             $manifest = $apk->getManifest();
             
             $packageName = $manifest->getPackageName();
