@@ -50,7 +50,9 @@ function formatDate(dateStr) {
                 <p class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mt-1">Total Deployments</p>
             </div>
 
-            <div class="premium-card p-6 border-b-4 border-rose-500 animate-slide-up" style="animation-delay: 0.2s">
+            <div class="premium-card p-6 border-b-4 border-rose-500 animate-slide-up" 
+                 :class="{ 'animate-pulse-rose': openFeedback > 0 }"
+                 style="animation-delay: 0.2s">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm">
                         <i class="bi bi-bug text-xl"></i>
@@ -61,7 +63,9 @@ function formatDate(dateStr) {
                 <p class="text-slate-500 font-bold text-[10px] uppercase tracking-wider mt-1">Pending Alerts</p>
             </div>
 
-            <div class="premium-card p-6 border-b-4 border-amber-500 animate-slide-up" style="animation-delay: 0.3s">
+            <div class="premium-card p-6 border-b-4 border-amber-500 animate-slide-up" 
+                 :class="{ 'animate-pulse-amber': myTasksCount > 0 }"
+                 style="animation-delay: 0.3s">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm">
                         <i class="bi bi-activity text-xl"></i>
@@ -104,7 +108,13 @@ function formatDate(dateStr) {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                <tr v-for="build in recentBuilds" :key="build.id" class="group hover:bg-[#f1f5f9]/50 transition-colors">
+                                <tr v-for="build in recentBuilds" :key="build.id" 
+                                    class="group transition-colors"
+                                    :class="[
+                                        build.pending_feedbacks_count > 0 ? 'animate-pulse-rose bg-rose-50/10' : 
+                                        build.pending_tasks_count > 0 ? 'animate-pulse-amber bg-amber-50/10' : 
+                                        'hover:bg-[#f1f5f9]/50'
+                                    ]">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-4">
                                             <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">

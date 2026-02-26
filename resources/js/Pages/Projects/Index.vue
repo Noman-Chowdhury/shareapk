@@ -44,7 +44,10 @@ function buildTypeColor(type) {
             <div v-for="project in projects" :key="project.id" class="group">
                 <Link :href="route('projects.show', project.id)" class="block h-full">
                     <div class="premium-card p-6 h-full flex flex-col hover-card"
-                         :class="{ 'border-rose-200': project.pending_feedbacks_count > 0 }">
+                         :class="{ 
+                             'animate-pulse-rose': project.pending_feedbacks_count > 0,
+                             'animate-pulse-amber': project.pending_feedbacks_count === 0 && project.pending_tasks_count > 0 
+                         }">
                         
                         <div class="flex items-start gap-4 mb-4">
                             <div class="w-12 h-12 rounded-lg bg-white border border-slate-200 shadow-sm p-1.5 flex items-center justify-center overflow-hidden shrink-0">
