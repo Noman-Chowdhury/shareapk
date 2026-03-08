@@ -89,10 +89,47 @@ class BuildController extends Controller
             $bestIcon = $matches[1];
         }
 
-        // Fix for Adaptive Icons (XML) - Find a PNG version in the APK (Skip library icons like Chucker)
+        // Fix for Adaptive Icons (XML) - Find a PNG/WEBP version in the APK (Skip library icons like Chucker)
         if ($bestIcon && str_ends_with(strtolower($bestIcon), '.xml')) {
-            $pngSearch = shell_exec("/usr/bin/unzip -l " . escapeshellarg($fullPath) . " | grep -Ei 'ic_launcher.*\.png' | grep -iv 'chucker' | sort -rn | head -n 1 | awk '{print $4}'");
-            if (trim($pngSearch)) $bestIcon = trim($pngSearch);
+            $fallbackFound = false;
+            $aapt2Path = '/usr/bin/aapt2';
+
+            // Try to find an alternative image format within the same resource mapping using aapt2
+            if (file_exists($aapt2Path)) {
+                $out = shell_exec(escapeshellcmd($aapt2Path) . " dump resources " . escapeshellarg($fullPath) . " 2>&1");
+                if ($out) {
+                    $blocks = explode("    resource ", $out);
+                    foreach ($blocks as $block) {
+                        if (str_contains($block, "(file) " . $bestIcon) || str_contains($block, '"' . $bestIcon . '"') || str_contains($block, "'" . $bestIcon . "'")) {
+                            if (preg_match_all("/\(file\)\s+([^\s:]+\.(?:png|webp))/i", $block, $fileMatches)) {
+                                $bestFallback = end($fileMatches[1]);
+                                if ($bestFallback) {
+                                    $bestIcon = trim($bestFallback);
+                                    $fallbackFound = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Try to guess by common name if obfuscation wasn't fully applied
+            if (!$fallbackFound) {
+                $pngSearch = shell_exec("/usr/bin/unzip -l " . escapeshellarg($fullPath) . " | grep -Ei 'ic_launcher.*\.(png|webp)' | grep -iv 'chucker' | sort -rn | head -n 1 | awk '{print $4}'");
+                if (trim($pngSearch)) {
+                    $bestIcon = trim($pngSearch);
+                    $fallbackFound = true;
+                }
+            }
+            
+            // Final fallback: Largest PNG/WEBP in the res/ folder, assuming it might be the icon
+            if (!$fallbackFound) {
+                $largestSearch = shell_exec("/usr/bin/unzip -l " . escapeshellarg($fullPath) . " | grep -E 'res/.*\.(png|webp)' | grep -iv 'chucker' | sort -rn | head -n 1 | awk '{print $4}'");
+                if (trim($largestSearch)) {
+                    $bestIcon = trim($largestSearch);
+                }
+            }
         }
 
         if ($bestIcon) {
