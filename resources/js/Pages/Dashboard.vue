@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 defineProps({
     totalBuilds: Number,
@@ -12,6 +13,36 @@ defineProps({
     recentBuilds: Array,
     recentActivity: Array,
 });
+
+const isUpdating = ref(false);
+
+const updateTaskStatus = (e, task, newStatus) => {
+    e.preventDefault();
+    if(isUpdating.value) return;
+    isUpdating.value = true;
+    router.put(route('tasks.update', task.id), {
+        ...task,
+        status: newStatus,
+        keep_attachments: task.attachments ? task.attachments.map(a => a.path) : []
+    }, {
+        preserveScroll: true,
+        onFinish: () => isUpdating.value = false
+    });
+};
+
+const updateFeedbackStatus = (e, fb, newStatus) => {
+    e.preventDefault();
+    if(isUpdating.value) return;
+    isUpdating.value = true;
+    router.put(route('feedback.update', fb.id), {
+        ...fb,
+        status: newStatus,
+        keep_attachments: fb.attachments ? fb.attachments.map(a => a.path) : []
+    }, {
+        preserveScroll: true,
+        onFinish: () => isUpdating.value = false
+    });
+};
 
 function formatDate(dateStr) {
     if (!dateStr) return '—';
@@ -161,13 +192,20 @@ function formatDate(dateStr) {
                             <i class="bi bi-stack text-slate-500"></i>
                         </div>
                         <div class="divide-y divide-slate-50 matte-surface h-64 overflow-y-auto">
-                            <Link v-for="task in myTasks" :key="task.id" :href="route('tasks.show', task.id)" class="block px-6 py-4 hover:bg-white transition-colors">
-                                <p class="text-sm font-bold text-slate-800 truncate mb-1">{{ task.title }}</p>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-[10px] text-slate-400 font-bold uppercase">{{ task.build?.project?.name }}</span>
-                                    <span v-if="task.priority === 'Urgent'" class="text-[9px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">URGENT</span>
+                            <div v-for="task in myTasks" :key="task.id" class="px-6 py-4 hover:bg-white transition-colors relative group">
+                                <Link :href="route('tasks.show', task.id)" class="block mb-2">
+                                    <p class="text-sm font-bold text-slate-800 truncate mb-1 group-hover:text-indigo-600 transition-colors">{{ task.title }}</p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">{{ task.build?.project?.name }}</span>
+                                        <span v-if="task.priority === 'Urgent'" class="text-[9px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded">URGENT</span>
+                                    </div>
+                                </Link>
+                                <div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-50/50">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase mr-auto">{{ task.status }}</span>
+                                    <button @click="(e) => updateTaskStatus(e, task, 'In Progress')" v-if="task.status !== 'In Progress'" class="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded hover:bg-indigo-100 transition-colors" :disabled="isUpdating">START</button>
+                                    <button @click="(e) => updateTaskStatus(e, task, 'Done')" class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100 transition-colors" :disabled="isUpdating">MARK DONE</button>
                                 </div>
-                            </Link>
+                            </div>
                             <div v-if="!myTasks?.length" class="py-16 text-center text-slate-300 italic text-xs">Queue Clear</div>
                         </div>
                     </div>
@@ -179,13 +217,20 @@ function formatDate(dateStr) {
                             <i class="bi bi-shield-radar text-slate-500"></i>
                         </div>
                         <div class="divide-y divide-slate-50 matte-surface h-64 overflow-y-auto">
-                            <Link v-for="fb in myFeedback" :key="fb.id" :href="route('feedback.show', fb.id)" class="block px-6 py-4 hover:bg-white transition-colors">
-                                <p class="text-sm font-bold text-slate-800 truncate mb-1">{{ fb.title }}</p>
-                                <div class="flex gap-2">
-                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 uppercase">{{ fb.type }}</span>
-                                    <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-rose-50 text-rose-600 uppercase">{{ fb.status }}</span>
+                            <div v-for="fb in myFeedback" :key="fb.id" class="px-6 py-4 hover:bg-white transition-colors relative group">
+                                <Link :href="route('feedback.show', fb.id)" class="block mb-2">
+                                    <p class="text-sm font-bold text-slate-800 truncate mb-1 group-hover:text-rose-600 transition-colors">{{ fb.title }}</p>
+                                    <div class="flex gap-2">
+                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-500 uppercase">{{ fb.type }}</span>
+                                        <span class="text-[9px] font-bold px-2 py-0.5 rounded" :class="fb.status === 'Open' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'">{{ fb.status }}</span>
+                                        <span class="text-[9px] text-slate-400 font-bold uppercase ml-auto">{{ fb.build?.project?.name }}</span>
+                                    </div>
+                                </Link>
+                                <div class="flex items-center gap-2 mt-2 pt-2 border-t border-slate-50/50">
+                                    <button @click="(e) => updateFeedbackStatus(e, fb, 'In Progress')" v-if="fb.status === 'Open'" class="text-[9px] font-black text-amber-600 bg-amber-50 px-2 py-1 rounded hover:bg-amber-100 transition-colors" :disabled="isUpdating">IN PROGRESS</button>
+                                    <button @click="(e) => updateFeedbackStatus(e, fb, 'Resolved')" class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100 transition-colors ml-auto" :disabled="isUpdating">RESOLVE</button>
                                 </div>
-                            </Link>
+                            </div>
                             <div v-if="!myFeedback?.length" class="py-16 text-center text-slate-300 italic text-xs">No Observations</div>
                         </div>
                     </div>
